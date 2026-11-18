@@ -52,3 +52,15 @@ jobs:
       - name: test (governor contract · phase invariants · store parity · registry conformance · corporate-intelligence)
         working-directory: orgs/cloud-itonami/cloud-itonami-isic-6810
         run: clojure -M:dev:test
+
+  app:
+    # The 登記 app under app/: static build (descriptor, CSP and runtime pins
+    # checked) and node tests. Reads src/realty/facts.cljk directly.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: build and test
+        working-directory: app
+        run: npm ci && npm test

@@ -1,0 +1,36 @@
+{
+  "schema": "kotoba.app.client-runtime.v1",
+  "target": "browser",
+  "profile": "trusted-page-v1",
+  "entry": "index.html",
+  "local-state": {
+    "adapter": "indexeddb",
+    "schema": "itonami.registry.v1",
+    "version": 1
+  },
+  "workers": [],
+  "operations": [
+    {
+      "capability": "registry.ownership.lookup",
+      "service": "wikidata-query",
+      "operation": "query-owned-by-near",
+      "consent": "each-operation",
+      "data-categories": [
+        "location",
+        "ip-address",
+        "user-agent"
+      ],
+      "endpoint": {
+        "origin": "https://query.wikidata.org",
+        "routes": [
+          {
+            "method": "GET",
+            "path": "/sparql",
+            "query-params": ["query", "format"],
+            "query-values": { "format": "json" }
+          }
+        ]
+      }
+    }
+  ]
+}
