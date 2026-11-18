@@ -27,6 +27,13 @@ Here it is **Realtor-LLM ⊣ RealtorGovernor**.
 > independent **RealtorGovernor**, a human **approval workflow**, and an
 > immutable **audit ledger**.
 
+
+## App: 登記 (Tauri v3, Awai Android)
+
+`app/` holds the user-facing registry app: land and building rights records
+kept on the device, the jurisdiction procedure from `realty.facts`, and a
+consented lookup of public ownership statements. See [`app/README.md`](app/README.md).
+
 ## Scope: what this actor does and does not do
 
 This actor drafts and governs a property-closing workflow: listing
