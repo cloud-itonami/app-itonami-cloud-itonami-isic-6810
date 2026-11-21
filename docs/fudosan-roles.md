@@ -57,11 +57,13 @@ lists, automated collection, advertising accounts.
 
 ## Open
 
-- What is sold first, whether the published checkout link stays, and how the
-  登記 app is distributed (AWAI-3719). A hosted instance per operator on the
-  company's servers would conflict with the shared app contract
-  (`app-environment-contract.md` in kotoba-lang/kotoba), which keeps per-user
-  state and request-time logic off the app origin; running in the operator's
-  own environment does not.
+- Decided 2026-11-21: the product runs in the operator's own environment.
+  The company keeps no per-operator instance or state on its servers, in line
+  with the shared app contract (`app-environment-contract.md` in
+  kotoba-lang/kotoba).
+- What is sold first and at what price (setup, support retainer, jurisdiction
+  pack), whether the published checkout link stays, and how the 登記 app is
+  distributed (AWAI-3719). The "Managed Starter" description no longer
+  matches the delivery decision.
 - Who the licensed reviewer is.
 - No operator has been contacted. Subscribers and revenue: unknown.
