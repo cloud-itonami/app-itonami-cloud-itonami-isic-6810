@@ -34,6 +34,17 @@ Here it is **Realtor-LLM ⊣ RealtorGovernor**.
 kept on the device, the jurisdiction procedure from `realty.facts`, and a
 consented lookup of public ownership statements. See [`app/README.md`](app/README.md).
 
+## Business bot: itonami-fudosan
+
+`hermes/profiles/itonami-fudosan/` is the Itonami bot profile in charge of the
+real-estate dapps (this repository, ISIC 6820, ISCO 3334, `real-estate`,
+`minpaku`, `kotoba-lang/property`; see its `tasks/apps.json`). It reads
+operator-supplied snapshots and drafts: the path to a first paying operator,
+onboarding steps, issue text. `yakuwari.edn` decides its authority; external
+messages, publishing, pricing, spending, signing, git changes, licensed
+real-estate acts and `:closing/submit` are blocked. It is on demand, has no
+cron job, and is not installed or deployed by being in this repository.
+
 ## Scope: what this actor does and does not do
 
 This actor drafts and governs a property-closing workflow: listing
