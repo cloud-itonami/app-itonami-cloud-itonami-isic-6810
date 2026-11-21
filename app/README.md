@@ -18,6 +18,18 @@ signs nothing, and moves no money (AWAI-350 boundary). Every record is marked
 - **Append-only history**: a change adds an amendment entry; earlier entries
   are never rewritten. On load, each record's data is replayed from its history
   and a record that does not match is set aside, not shown.
+- **Closing preparation**: for a record, take in the parties, record the result
+  of the operator's own sanctions/PEP screening, draft a closing proposal and
+  record a named person's approval (`src/closing.js`). The four hard rules are
+  those of `realty.governor`: no spec-basis in `realty.facts`, a sanctions/PEP
+  hit, incomplete required documents, already closed. A hard rule holds the
+  proposal and no approval passes it. A clean proposal is never automatic: it
+  waits for a named person, and it must be drafted again if the documents or
+  screening results change. After approval the app lists the jurisdiction's
+  human gates and lets a person note that the registration was completed. The
+  app screens no one, files nothing and moves no money. Cases are kept in
+  IndexedDB as append-only events; a stored case the functions could not have
+  produced is set aside on load. No LLM is involved.
 - **Jurisdiction procedure**: authority, legal basis, filing route, source URL,
   the human steps the app never performs (`:human-gates`), and the required
   documents as a checklist. All of it comes from `src/realty/facts.cljk`, read
