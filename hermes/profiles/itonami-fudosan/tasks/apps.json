@@ -8,8 +8,15 @@
     {
       "id": "isic-6810",
       "role": "Closing and title-transfer preparation actor (Realtor-LLM under RealtorGovernor) and the 登記 Tauri app",
-      "source": {"repo": "cloud-itonami/app-itonami-cloud-itonami-isic-6810", "revision": "ca5a29b"},
-      "revenue": ["managed hosting subscription", "per-closing fee", "jurisdiction-pack licence"],
+      "source": {
+        "repo": "cloud-itonami/app-itonami-cloud-itonami-isic-6810",
+        "revision": "ca5a29b"
+      },
+      "revenue": [
+        "managed hosting subscription",
+        "per-closing fee",
+        "jurisdiction-pack licence"
+      ],
       "observed": [
         "6 jurisdictions in realty.facts; human gates filled for NLD and JPN",
         "Managed Starter priced at JPY 30,000 per month in docs/business-model.md",
@@ -18,7 +25,7 @@
       ],
       "unknown": [
         "paid subscribers today (the repository says zero as of 2026-08-10)",
-        "a licensed operator for any jurisdiction",
+        "which licensed operator is first (none identified)",
         "release-signed build, physical device run and store listing of the 登記 app",
         "test results on the current revision"
       ]
@@ -26,41 +33,90 @@
     {
       "id": "isic-6820",
       "role": "Property management and fees blueprint",
-      "source": {"repo": "cloud-itonami/cloud-itonami-isic-6820", "revision": "9376c67"},
-      "unknown": ["product scope beyond the blueprint", "any user"]
+      "source": {
+        "repo": "cloud-itonami/cloud-itonami-isic-6820",
+        "revision": "9376c67"
+      },
+      "unknown": [
+        "product scope beyond the blueprint",
+        "any user"
+      ]
     },
     {
       "id": "isco-3334",
       "role": "Real-estate agent and property manager occupation blueprint",
-      "source": {"repo": "cloud-itonami/cloud-itonami-isco-3334", "revision": "0e0486c"},
-      "unknown": ["credential model for the licensed person (AWAI-341)"]
+      "source": {
+        "repo": "cloud-itonami/cloud-itonami-isco-3334",
+        "revision": "0e0486c"
+      },
+      "unknown": [
+        "credential model for the licensed person (AWAI-341)"
+      ]
     },
     {
       "id": "real-estate",
       "role": "Listing, offer and earnest-deposit seed (AT PDS records, USDC on Base)",
-      "source": {"repo": "cloud-itonami/real-estate", "revision": "e4eeb84"},
-      "observed": ["migration seed; codemod pending; round trip passes against a mock"],
-      "unknown": ["whether it is kept, merged into 6810 or frozen (AWAI-348, owner decision)"]
+      "source": {
+        "repo": "cloud-itonami/real-estate",
+        "revision": "e4eeb84"
+      },
+      "observed": [
+        "migration seed; codemod pending; round trip passes against a mock"
+      ],
+      "unknown": [
+        "whether it is kept, merged into 6810 or frozen (AWAI-348, owner decision)"
+      ]
     },
     {
       "id": "minpaku",
       "role": "Short-stay listing, booking and USDC settlement seed",
-      "source": {"repo": "cloud-itonami/minpaku", "revision": "2202217"},
-      "observed": ["TypeScript core with 12 tests; the screen is a single heading"],
-      "unknown": ["lodging licence handling", "any user"]
+      "source": {
+        "repo": "cloud-itonami/minpaku",
+        "revision": "2202217"
+      },
+      "observed": [
+        "TypeScript core with 12 tests; the screen is a single heading"
+      ],
+      "unknown": [
+        "lodging licence handling",
+        "any user"
+      ]
     },
     {
       "id": "property",
       "role": "Parcel, listing and lease library used by isic-6810",
-      "source": {"repo": "kotoba-lang/property", "revision": "9fac664"},
+      "source": {
+        "repo": "kotoba-lang/property",
+        "revision": "9fac664"
+      },
       "unknown": []
     }
   ],
   "openWork": [
-    {"issue": "AWAI-341", "what": "Licensed persons and organisations as credentialed accounts"},
-    {"issue": "AWAI-349", "what": "Separate price opinion (agent) from appraisal (appraiser)"},
-    {"issue": "AWAI-348", "what": "Decide the future of the real-estate repository"},
-    {"issue": "AWAI-217", "what": "Common EVM core: credential, gate receipt, fee (testnet only)"},
-    {"issue": "AWAI-198", "what": "Legal review before any real funds"}
-  ]
+    {
+      "issue": "AWAI-341",
+      "what": "Licensed persons and organisations as credentialed accounts"
+    },
+    {
+      "issue": "AWAI-349",
+      "what": "Separate price opinion (agent) from appraisal (appraiser)"
+    },
+    {
+      "issue": "AWAI-348",
+      "what": "Decide the future of the real-estate repository"
+    },
+    {
+      "issue": "AWAI-217",
+      "what": "Common EVM core: credential, gate receipt, fee (testnet only)"
+    },
+    {
+      "issue": "AWAI-198",
+      "what": "Legal review before any real funds"
+    },
+    {
+      "issue": "AWAI-3719",
+      "what": "What is sold first, the checkout link, distribution of the 登記 app"
+    }
+  ],
+  "decision": "First operators are existing licensed real-estate businesses (owner, 2026-11-21, AWAI-3719)."
 }
