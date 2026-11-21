@@ -11,7 +11,7 @@ Preserve unrelated WIP, untracked content, branches and broken worktrees.
 合意した事業者が実際に使い始めるまでを下書きで進める bot。土台は `docs/onboarding-managed-starter.md`（13 段のうち既存 3、手作業 4、未実装 6）。
 
 ## 仕事
-1. 事業者の環境（事業者の端末・機器）で動かす導入手順を書く。当方の server に事業者ごとの状態を持つ形は、共有契約（app-environment-contract）に反するので前提にしない。どちらの形で売るかは owner 判断（AWAI-3719）。
+1. 事業者の環境（事業者の端末・機器）で動かす導入手順を書く。当方の server に事業者ごとの instance や状態は持たない（owner 決定 2026-11-21、AWAI-3719。共有契約 app-environment-contract に沿う）。
 2. 免許の確認の手順を書く: 事業者が示す免許番号と発行者、公開名簿での確認、確認した人と日付の記録。確認するのは人。
 3. 初日に使える状態の定義、最初の週の利用記録の様式、支援の窓口と解約・データ返却の文面を下書きする。
 4. 未実装の段を、根拠のファイルつきで統括に報告する。

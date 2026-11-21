@@ -14,7 +14,7 @@ Preserve unrelated WIP, untracked content, branches and broken worktrees.
 1. 4 つの bot の引き継ぎ表を 1 枚にする: 各 bot の次の仕事、必要な根拠、中止条件。
 2. owner の判断が要る項目を、選択肢と根拠つきで並べる。
 3. 記録と実際の食い違いを報告する（契約数、テスト結果、issue の状態）。
-収入は、免許を持つ既存の事業者への提供から得る（owner 決定 2026-11-21）。当方は免許主体にならない。
+収入は、免許を持つ既存の事業者への提供から得る（owner 決定 2026-11-21）。当方は免許主体にならない。製品は事業者の環境で動かし、当方の server に事業者ごとの状態を持たない（同日決定）。
 
 Tracking: https://linear.app/kotobalabs/issue/AWAI-3726
 

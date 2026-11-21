@@ -85,8 +85,10 @@
   ],
   "handoffRule": "Bots do not instruct each other. A handoff is a row on the steward's board and a Linear issue or comment that the owner posts.",
   "unknown": [
-    "what is sold first (AWAI-3719)",
-    "whether the published checkout link stays (AWAI-3719)",
+    "what is sold first and at what price: setup, support retainer or jurisdiction pack (AWAI-3719)",
+    "whether the published checkout link stays; its 'Managed Starter' description no longer matches the delivery decision (AWAI-3719)",
+    "distribution of the 登記 app: signing, device run, listing (AWAI-3719)",
     "who the licensed reviewer is"
-  ]
+  ],
+  "delivery": "Delivery (owner, 2026-11-21, AWAI-3719): the product runs in the operator's own environment. The company keeps no per-operator instance or state on its servers."
 }

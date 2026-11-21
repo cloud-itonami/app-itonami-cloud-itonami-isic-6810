@@ -13,9 +13,10 @@
         "revision": "ca5a29b"
       },
       "revenue": [
-        "managed hosting subscription",
-        "per-closing fee",
-        "jurisdiction-pack licence"
+        "setup in the operator's environment",
+        "support retainer",
+        "jurisdiction-pack licence",
+        "per-closing fee (unpriced)"
       ],
       "observed": [
         "6 jurisdictions in realty.facts; human gates filled for NLD and JPN",
@@ -118,5 +119,6 @@
       "what": "What is sold first, the checkout link, distribution of the 登記 app"
     }
   ],
-  "decision": "First operators are existing licensed real-estate businesses (owner, 2026-11-21, AWAI-3719)."
+  "decision": "First operators are existing licensed real-estate businesses (owner, 2026-11-21, AWAI-3719).",
+  "delivery": "Delivery (owner, 2026-11-21, AWAI-3719): the product runs in the operator's own environment. The company keeps no per-operator instance or state on its servers."
 }

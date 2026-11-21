@@ -23,12 +23,12 @@ model records zero as of 2026-08-10), any operator's identity, and revenue.
 | 2 | The seller learns that a payment arrived | manual | No webhook or notification code in `src/` |
 | 3 | Confirm the operator holds the licence for the jurisdiction | missing | No licence or credential record; design is AWAI-341 |
 | 4 | Confirm the jurisdiction is covered | exists | `realty.facts/coverage`, `src/realty/facts.cljk` (6 jurisdictions; human gates for NLD and JPN, JPN provisional) |
-| 5 | Create the operator's own instance | missing | `realty.store` has `MemStore` and `DatomicStore` but no per-agency separation, and the repository has no hosting or deployment configuration |
-| 6 | Give the operator's staff a way to sign in, with roles | missing | No sign-in code; `realty.operation` takes an injected actor id, role and phase |
+| 5 | Install in the operator's own environment | missing | Decided 2026-11-21: no per-operator instance on the company's servers. The 登記 app (`app/`) runs on a device but holds rights records only; the closing workflow (`src/realty/`) has no installable package |
+| 6 | Tell staff apart on the operator's device, with roles | missing | No user or role record; `realty.operation` takes an injected actor id, role and phase |
 | 7 | Load the operator's listings and parties | manual | `Store/with-listings` and `with-parties` take maps; there is no file import |
 | 8 | Set the phase (0 read-only to 3 supervised) | exists | `src/realty/phase.cljk`; `:closing/submit` is never automatic |
 | 9 | Route held and escalated proposals to the operator's approver | manual | The approver resumes the graph with `{:approval {:status :approved}}`; no inbox or notification |
-| 10 | Show the operator their console | missing | `docs/samples/operator-console.html` is a generated, read-only sample of demo data |
+| 10 | Show the operator their console, from their own data | missing | `docs/samples/operator-console.html` is a generated, read-only sample of demo data; `realty.render-html` renders it from a store |
 | 11 | Export the audit ledger for the operator | manual | `Store/ledger` returns the facts; no export command |
 | 12 | Support and incident contact | missing | `docs/operator-guide.md` names a support retainer; no channel is defined |
 | 13 | Cancel, and return or delete the operator's data | missing | Not described anywhere |
@@ -64,8 +64,10 @@ Fill in from what the operator supplies. Leave a field `unknown` until then.
 1. Decided 2026-11-21: the first operators are existing licensed real-estate
    businesses ([fudosan-roles.md](fudosan-roles.md)). Still open: what is sold
    first (AWAI-3719, owner decision).
-2. Either build steps 5, 6 and 10, or sell the self-host setup instead of the
-   managed tier until they exist.
+2. Decided 2026-11-21: the product runs in the operator's own environment.
+   Build steps 5, 6 and 10 for that form. The "Managed Starter" description
+   (a managed tenant on the company's hosting) no longer matches; what is
+   sold and its price are open (AWAI-3719).
 3. Write down steps 12 and 13.
 
 Until then, a payment through the checkout link buys a service that cannot be

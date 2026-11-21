@@ -24,6 +24,16 @@
   handoff (the Realtor-LLM ⊣ RealtorGovernor actor -- see README)
 
 ## Revenue
+
+> **Delivery decision, 2026-11-21 (owner, AWAI-3719):** the first operators
+> are existing licensed real-estate businesses, and the product runs in the
+> operator's own environment. The company keeps no per-operator instance or
+> state on its servers. The "managed hosting subscription" line and the
+> "Managed Starter" tier below describe the earlier plan and are not offered
+> in that form; what replaces them (setup, support retainer, jurisdiction
+> pack) and at what price is not decided. The checkout link below is
+> unchanged.
+
 - self-host setup fee
 - managed hosting subscription per agency
 - support retainer with SLA
