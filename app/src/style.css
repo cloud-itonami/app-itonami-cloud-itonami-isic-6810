@@ -63,3 +63,10 @@ ul.results li { border-top: 1px solid var(--line); padding-top: 6px; display: fl
 details summary { cursor: pointer; font-size: .85rem; color: var(--muted); }
 .foot { padding: 8px 16px 16px; }
 code { font-size: .85em; }
+.party-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 6px; padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+ul.parties { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: .9rem; }
+ul.parties li { display: grid; grid-template-columns: 1fr 130px; gap: 8px; align-items: center; overflow-wrap: anywhere; }
+ul.holds { margin: 0; padding-left: 1.2em; font-size: .9rem; color: var(--err); display: flex; flex-direction: column; gap: 4px; }
+.chip.status-hold { border-color: var(--err); color: var(--err); }
+.chip.status-awaiting-human { border-color: var(--warn); color: var(--warn); }
+.chip.status-approved, .chip.status-closed { border-color: var(--accent); color: var(--accent); }

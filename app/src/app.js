@@ -6,9 +6,11 @@ import { createClientConsentHost } from "./kotoba-client-runtime.js";
 import { openStore } from "./store.js";
 import { PROPERTY_KINDS, RIGHT_TYPES, createRecord, amendRecord, recordProblems, checklist } from "./records.js";
 import { createLookup, RADII_KM } from "./lookup.js";
+import { PARTY_ROLES, VERDICTS, RULES, basisOf, openCase, caseState, recordScreening, propose, approve, decline, markClosed, withdraw, caseProblems } from "./closing.js";
 
 const catalog = facts.catalog;
 const KEY = "records";
+const CASES_KEY = "closings";
 const store = openStore();
 const consentHost = createClientConsentHost();
 const lookup = createLookup({ descriptor, consentHost });
@@ -38,7 +40,21 @@ const PROBLEM_LABELS = {
   "jurisdiction-fixed": "法域は作成後に変えられません。新しい記録を作ってください。",
 };
 
+const CASE_PROBLEMS = {
+  parties: "関係者の役割と名前を 1 人以上入れてください。",
+  "case-open": "この記録には進行中の成約の準備があります。",
+  held: "保留中の提案は承認できません。理由を解消して、提案を作り直してください。",
+  "stale-proposal": "提案のあとに書類か照合結果が変わりました。提案を作り直してください。",
+  "no-proposal": "承認を待っている提案がありません。",
+  approver: "承認する人の名前と資格・役割を入れてください。",
+  "not-approved": "承認の記録がありません。",
+  "case-settled": "この成約の準備は確定済みです。",
+};
+const STATUS_LABELS = { open: "準備中", hold: "保留", "awaiting-human": "人の承認待ち", approved: "承認を記録済み", declined: "差し戻し", closed: "成約済み（控え）", withdrawn: "取り下げ" };
+
 let records = [];
+let cases = [];
+let casesRejected = [];
 let selected = null;
 let view = "detail"; // detail | form
 let lastLookup = null; // { id, results, retrievedAt }
@@ -69,6 +85,27 @@ async function load() {
   const dropped = list.length - records.length;
   $("storage").textContent = dropped ? `整合しない記録 ${dropped} 件を読み込みませんでした（端末には残っています）。` : "";
   if (dropped) records.rejected = list.filter((r) => recordProblems(r).length);
+  const savedCases = await store.get(CASES_KEY);
+  const all = Array.isArray(savedCases) ? savedCases : [];
+  cases = all.filter((c) => caseProblems(c).length === 0);
+  casesRejected = all.filter((c) => caseProblems(c).length);
+  if (casesRejected.length) $("storage").textContent += ` 整合しない成約の準備 ${casesRejected.length} 件を読み込みませんでした（端末には残っています）。`;
+}
+
+async function saveCases() {
+  const ok = await store.set(CASES_KEY, [...cases, ...casesRejected]);
+  if (!ok) $("storage").textContent = "この端末に保存できませんでした。アプリを閉じると失われます。";
+  return ok;
+}
+
+// Apply a closing.js result: keep the new case, or show why it was refused.
+async function applyCase(result, errors) {
+  if (result.problems) { errors?.replaceChildren(...result.problems.map((p) => h("li", {}, CASE_PROBLEMS[p] ?? p))); return false; }
+  if (result.unchanged) return true;
+  cases = cases.some((c) => c.id === result.case.id) ? cases.map((c) => (c.id === result.case.id ? result.case : c)) : [...cases, result.case];
+  await saveCases();
+  render();
+  return true;
 }
 
 async function save() {
@@ -209,6 +246,8 @@ function detail(r) {
       spec.notes ? h("details", {}, h("summary", {}, "注記"), h("p", { class: "hint pre" }, spec.notes)) : null,
     ] : h("p", { class: "muted" }, `${d.jurisdiction} の手続きの情報は realty.facts にありません。推測で補わず、表示しません。`)));
 
+  out.push(closingCard(r));
+
   out.push(lookupCard(r));
 
   if (d.references.length) out.push(h("div", { class: "card" }, h("h3", {}, "照会から残した参考"),
@@ -231,11 +270,116 @@ function deleteButton(r) {
   const b = h("button", { type: "button", class: "secondary danger", onclick: async () => {
     if (!armed) { armed = true; b.textContent = "本当に端末から削除"; setTimeout(() => { armed = false; b.textContent = "削除"; }, 4000); return; }
     records = Object.assign(records.filter((x) => x.id !== r.id), { rejected: records.rejected });
+    cases = cases.filter((c) => c.recordId !== r.id);
     selected = null;
     await save();
+    await saveCases();
     render();
   } }, "削除");
   return b;
+}
+
+// --- closing preparation (closing.js; the device-side form of realty.governor) ---
+function partyRow(p = {}) {
+  const row = h("div", { class: "party-row" },
+    h("select", { "aria-label": "役割", name: "role" }, ...Object.entries(PARTY_ROLES).map(([k, v]) => h("option", { value: k, selected: p.role === k }, v))),
+    h("input", { "aria-label": "名前", name: "name", placeholder: "名前（法人名・氏名）", value: p.name ?? "" }),
+    h("button", { type: "button", class: "secondary small", "aria-label": "この関係者を除く", onclick: () => row.remove() }, "除く"));
+  return row;
+}
+
+const EVENT_TEXT = {
+  opened: (e) => `受理: 関係者 ${e.parties.length} 名`,
+  screened: (e, s) => `照合結果: ${s.parties[e.party]?.name ?? ""} — ${VERDICTS[e.verdict]}`,
+  proposed: (e) => (e.disposition === "hold" ? `提案: 保留（${e.violations.length} 件）` : "提案: 人の承認待ち"),
+  approved: (e) => `承認: ${e.by}（${e.role}）`,
+  declined: (e) => `差し戻し: ${e.by}${e.reason ? ` — ${e.reason}` : ""}`,
+  closed: (e) => `登記完了の控え: ${e.by}${e.reference ? `（${e.reference}）` : ""}`,
+  withdrawn: () => "取り下げ",
+};
+
+function closingCard(r) {
+  const spec = catalog[r.data.jurisdiction];
+  const mine = cases.filter((c) => c.recordId === r.id);
+  const current = mine.at(-1) ?? null;
+  const state = current ? caseState(current) : null;
+  const active = state && !["closed", "withdrawn"].includes(state.status);
+  const errors = h("ul", { class: "error", role: "alert" });
+  const card = h("div", { class: "card" },
+    h("div", { class: "head" }, h("h3", {}, "成約の準備"), state ? h("span", { class: `chip status-${state.status}` }, STATUS_LABELS[state.status]) : null),
+    h("p", { class: "hint" }, "受理、必要書類の確認、成約提案の下書き、人の承認までをこの端末の中で控えます。照合・登記の申請・代金の受け渡しは行いません。承認できるのは人だけです。"));
+
+  if (!spec) card.append(h("p", { class: "hint warn" }, `${r.data.jurisdiction} の公式な根拠が realty.facts にないため、成約の提案は必ず保留になります。`));
+
+  if (!active) {
+    if (current) card.append(caseHistory(current, state));
+    const rows = h("div", { class: "rights" }, partyRow({ role: "seller" }), partyRow({ role: "buyer" }));
+    card.append(
+      h("h4", {}, current ? "新しい準備を始める" : "受理（関係者）"), rows,
+      h("button", { type: "button", class: "secondary small", onclick: () => rows.append(partyRow({ role: "buyer" })) }, "関係者を加える"),
+      errors,
+      h("div", { class: "row" }, h("button", { type: "button", onclick: () => applyCase(openCase(cases, r, {
+        parties: [...rows.children].map((row) => ({ role: row.querySelector("[name=role]").value, name: row.querySelector("[name=name]").value })) }), errors) }, "準備を始める")));
+    return card;
+  }
+
+  const c = current;
+  const settled = state.status === "approved";
+  card.append(h("h4", {}, "関係者と照合結果"),
+    h("p", { class: "hint" }, "制裁・PEP リストとの照合は、事業者が自分の手段で行います。ここには結果だけを控えます。"),
+    h("ul", { class: "parties" }, ...state.parties.map((p, i) => h("li", {},
+      h("span", {}, `${PARTY_ROLES[p.role]}: ${p.name}`),
+      h("select", { "aria-label": `${p.name} の照合結果`, disabled: settled, onchange: (e) => applyCase(recordScreening(c, i, e.target.value), errors) },
+        ...Object.entries(VERDICTS).map(([k, v]) => h("option", { value: k, selected: state.verdicts[i] === k }, v)))))));
+
+  const cl = checklist(r, catalog);
+  const held = cl.items.filter((x) => x.held).length;
+  card.append(h("h4", {}, "必要書類"),
+    h("p", { class: cl.covered && held === cl.items.length ? "muted" : "hint warn" },
+      cl.covered ? `${held} / ${cl.items.length} 件に印があります（上の「法域の手続き」で印を付けます）。` : "この法域の必要書類は表示できません。"));
+
+  const p = state.proposal;
+  // A proposal judged on documents or screening results that have since changed cannot be approved.
+  const stale = !!p && !settled && JSON.stringify(p.basis) !== JSON.stringify(basisOf(c, r, catalog));
+  if (p) {
+    card.append(h("h4", {}, "成約提案（下書き）"));
+    if (p.disposition === "hold") card.append(h("ul", { class: "holds" }, ...p.violations.map((v) => h("li", {}, RULES[v]))),
+      h("p", { class: "hint" }, "保留は承認で通せません。理由を解消してから、提案を作り直してください。"));
+    else card.append(h("p", { class: "muted" }, `保留の理由はありません。根拠: ${p.basis.specBasis.provenance}`),
+      p.unscreened ? h("p", { class: "hint warn" }, `照合していない関係者が ${p.unscreened} 名います。`) : null);
+    if (stale) card.append(h("p", { class: "hint warn" }, "提案のあとに書類か照合結果が変わりました。この提案は承認できません。提案を作り直してください。"));
+  }
+  if (!settled) card.append(h("div", { class: "row" },
+    h("button", { type: "button", onclick: () => applyCase(propose(c, r, catalog, cases), errors) }, p ? "提案を作り直す" : "成約提案を作る"),
+    h("button", { type: "button", class: "secondary", onclick: () => applyCase(withdraw(c), errors) }, "取り下げる")));
+
+  if (state.status === "awaiting-human" && !stale) {
+    const by = h("input", { "aria-label": "承認する人の名前", placeholder: "承認する人の名前" });
+    const role = h("input", { "aria-label": "資格・役割", placeholder: "資格・役割（例: 宅地建物取引士）" });
+    card.append(h("h4", {}, "人の承認"),
+      h("p", { class: "hint" }, "承認は、資格を持つ人が内容を確かめたという控えです。このアプリは登記を申請せず、代金も動かしません。"),
+      h("div", { class: "pair" }, by, role),
+      h("div", { class: "row" },
+        h("button", { type: "button", onclick: () => applyCase(approve(c, r, catalog, cases, { by: by.value, role: role.value }), errors) }, "承認を記録する"),
+        h("button", { type: "button", class: "secondary", onclick: () => applyCase(decline(c, { by: by.value }), errors) }, "差し戻す")));
+  }
+  if (settled) {
+    const by = h("input", { "aria-label": "控える人の名前", placeholder: "控える人の名前", value: state.approval.by });
+    const ref = h("input", { "aria-label": "受付番号など", placeholder: "受付番号など（任意）" });
+    card.append(h("h4", {}, "このあと人が行う手続き"),
+      spec?.["human-gates"]?.length ? h("ul", { class: "gates" }, ...spec["human-gates"].map((g) => h("li", {}, GATE_LABELS[g] ?? g)))
+        : h("p", { class: "muted" }, "この法域の人の手続きの一覧は realty.facts にありません。"),
+      h("p", { class: "hint" }, "登記が完了したら、その事実を控えます。完了させるのは登記の機関です。"),
+      h("div", { class: "pair" }, by, ref),
+      h("div", { class: "row" }, h("button", { type: "button", onclick: () => applyCase(markClosed(c, { by: by.value, reference: ref.value }), errors) }, "登記の完了を控える")));
+  }
+  card.append(errors, caseHistory(c, state));
+  return card;
+}
+
+function caseHistory(c, state) {
+  return h("details", {}, h("summary", {}, `${c.id} の履歴（追記のみ、${c.events.length} 件）`),
+    h("ol", { class: "history" }, ...c.events.map((e) => h("li", {}, h("span", { class: "muted" }, fmtDate(e.at)), " ", EVENT_TEXT[e.kind](e, state)))));
 }
 
 function lookupCard(r) {
