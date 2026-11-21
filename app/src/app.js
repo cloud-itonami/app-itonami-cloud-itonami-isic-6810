@@ -345,8 +345,11 @@ function closingCard(r) {
     card.append(h("h4", {}, "成約提案（下書き）"));
     if (p.disposition === "hold") card.append(h("ul", { class: "holds" }, ...p.violations.map((v) => h("li", {}, RULES[v]))),
       h("p", { class: "hint" }, "保留は承認で通せません。理由を解消してから、提案を作り直してください。"));
-    else card.append(h("p", { class: "muted" }, `保留の理由はありません。根拠: ${p.basis.specBasis.provenance}`),
-      p.unscreened ? h("p", { class: "hint warn" }, `照合していない関係者が ${p.unscreened} 名います。`) : null);
+    else {
+      card.append(h("p", { class: "muted" }, `保留の理由はありません。根拠: ${p.basis.specBasis.provenance}`));
+      // Node.append() would print a null child as the text "null".
+      if (p.unscreened) card.append(h("p", { class: "hint warn" }, `照合していない関係者が ${p.unscreened} 名います。`));
+    }
     if (stale) card.append(h("p", { class: "hint warn" }, "提案のあとに書類か照合結果が変わりました。この提案は承認できません。提案を作り直してください。"));
   }
   if (!settled) card.append(h("div", { class: "row" },
