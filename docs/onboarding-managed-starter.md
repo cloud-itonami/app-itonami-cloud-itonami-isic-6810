@@ -61,7 +61,9 @@ Fill in from what the operator supplies. Leave a field `unknown` until then.
 
 ## Before taking a first payment
 
-1. Decide who operates and what is sold first (AWAI-3719, owner decision).
+1. Decided 2026-11-21: the first operators are existing licensed real-estate
+   businesses ([fudosan-roles.md](fudosan-roles.md)). Still open: what is sold
+   first (AWAI-3719, owner decision).
 2. Either build steps 5, 6 and 10, or sell the self-host setup instead of the
    managed tier until they exist.
 3. Write down steps 12 and 13.

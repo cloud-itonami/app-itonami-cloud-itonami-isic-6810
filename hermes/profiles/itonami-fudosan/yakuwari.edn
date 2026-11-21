@@ -1,4 +1,4 @@
-;; Authority for the itonami-fudosan profile (AWAI-3716). This file decides; itonami.edn holds a copy.
+;; Authority for the itonami-fudosan profile (AWAI-3726). This file decides; itonami.edn holds a copy.
 ;; The bot reads operator-supplied snapshots and drafts. Anything unlisted reads as :blocked.
 {:yakuwari/id :itonami-fudosan
  :yakuwari/capabilities
@@ -7,14 +7,14 @@
   {:capability :draft_artifact :decision :autonomous :note "Own host-local workspace only; a draft is not publication, an offer or advice"}
   {:capability :record_local_receipt :decision :autonomous :note "Own job evidence only; no revenue, customer or settlement claim"}
   {:capability :propose_issue :decision :approval-required :note "Linear issue or comment text for the owner to post"}
+  {:capability :licensed_real_estate_act :decision :blocked :note "Brokerage, important-matter explanation, appraisal, registration filing: a licensed person does these"}
+  {:capability :closing_submit :decision :blocked}
   {:capability :delegate_task :decision :blocked}
   {:capability :external_messaging :decision :blocked}
   {:capability :publish :decision :blocked}
   {:capability :spend :decision :blocked}
   {:capability :transfer_funds :decision :blocked}
   {:capability :change_pricing :decision :blocked}
-  {:capability :licensed_real_estate_act :decision :blocked :note "Brokerage, important-matter explanation, appraisal, registration filing: a licensed person does these"}
-  {:capability :closing_submit :decision :blocked}
   {:capability :storage_upload :decision :blocked}
   {:capability :delete_data :decision :blocked}
   {:capability :manage_services :decision :blocked}

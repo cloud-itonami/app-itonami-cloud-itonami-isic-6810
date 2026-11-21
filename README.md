@@ -34,16 +34,18 @@ Here it is **Realtor-LLM ⊣ RealtorGovernor**.
 kept on the device, the jurisdiction procedure from `realty.facts`, and a
 consented lookup of public ownership statements. See [`app/README.md`](app/README.md).
 
-## Business bot: itonami-fudosan
+## Business bots
 
-`hermes/profiles/itonami-fudosan/` is the Itonami bot profile in charge of the
-real-estate dapps (this repository, ISIC 6820, ISCO 3334, `real-estate`,
-`minpaku`, `kotoba-lang/property`; see its `tasks/apps.json`). It reads
-operator-supplied snapshots and drafts: the path to a first paying operator,
-onboarding steps, issue text. `yakuwari.edn` decides its authority; external
-messages, publishing, pricing, spending, signing, git changes, licensed
-real-estate acts and `:closing/submit` are blocked. It is on demand, has no
-cron job, and is not installed or deployed by being in this repository.
+Four on-demand Itonami bot profiles in `hermes/profiles/` share the business
+work for the real-estate dapps: `itonami-fudosan` (steward),
+`itonami-fudosan-eigyo` (gathering existing licensed operators),
+`itonami-fudosan-donyu` (onboarding and support) and `itonami-fudosan-hoiki`
+(jurisdiction packs and credentials). They read supplied snapshots and draft;
+external messages, publishing, pricing, spending, signing, Git changes,
+licensed real-estate acts and `:closing/submit` are blocked in each
+`yakuwari.edn`. The division of work between the bots and people is in
+[`docs/fudosan-roles.md`](docs/fudosan-roles.md). Being in this repository
+does not install or deploy a profile.
 
 ## Scope: what this actor does and does not do
 

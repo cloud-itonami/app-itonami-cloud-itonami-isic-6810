@@ -1,0 +1,92 @@
+{
+  "schema": "itonami.fudosan.roles.v1",
+  "decidedOn": "2026-11-21",
+  "tracking": "AWAI-3726",
+  "decision": "The first operators are existing licensed real-estate businesses; the company does not become a licensed operator itself (owner, 2026-11-21, AWAI-3719).",
+  "bots": [
+    {
+      "id": "itonami-fudosan",
+      "role": "steward",
+      "does": [
+        "handoff board across the four bots",
+        "decision requests to the owner",
+        "reports of mismatches between records and source"
+      ],
+      "handsTo": [
+        "owner"
+      ]
+    },
+    {
+      "id": "itonami-fudosan-eigyo",
+      "role": "operator acquisition",
+      "does": [
+        "target operator criteria",
+        "candidate table from public sources the owner supplies",
+        "drafts of first-contact text and meeting material",
+        "qualification worksheet per candidate"
+      ],
+      "handsTo": [
+        "owner (sends, meets, agrees)",
+        "itonami-fudosan-donyu once an operator agrees to a trial"
+      ]
+    },
+    {
+      "id": "itonami-fudosan-donyu",
+      "role": "onboarding and support",
+      "does": [
+        "install steps in the operator's own environment",
+        "licence confirmation checklist",
+        "support and cancellation text drafts",
+        "first-week usage record template"
+      ],
+      "handsTo": [
+        "owner",
+        "itonami-fudosan-hoiki when a jurisdiction requirement is unclear"
+      ]
+    },
+    {
+      "id": "itonami-fudosan-hoiki",
+      "role": "jurisdiction and credentials",
+      "does": [
+        "source check of each realty.facts entry",
+        "review packet for a licensed reviewer",
+        "list of jurisdictions that are not covered"
+      ],
+      "handsTo": [
+        "licensed reviewer through the owner"
+      ]
+    }
+  ],
+  "humans": [
+    {
+      "role": "owner",
+      "does": [
+        "sends every external message",
+        "sets price and terms, signs contracts",
+        "publishes",
+        "approves issue text",
+        "posts decisions"
+      ]
+    },
+    {
+      "role": "operator's licensed person",
+      "does": [
+        "brokerage, important-matter explanation and other licensed acts",
+        "approves every closing proposal",
+        "keeps identity documents"
+      ]
+    },
+    {
+      "role": "licensed reviewer",
+      "does": [
+        "confirms the jurisdiction gates (JPN is provisional)"
+      ]
+    }
+  ],
+  "handoffRule": "Bots do not instruct each other. A handoff is a row on the steward's board and a Linear issue or comment that the owner posts.",
+  "unknown": [
+    "what is sold first (AWAI-3719)",
+    "whether the published checkout link stays (AWAI-3719)",
+    "who the licensed reviewer is"
+  ]
+}
