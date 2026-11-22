@@ -4,6 +4,7 @@
 import descriptor from "./descriptor.js";
 import facts from "./jurisdictions.js";
 import { createGuestPort } from "./guest-port.js";
+import { bindForm } from "./guest-form.js";
 import { openStore } from "./store.js";
 import { PROPERTY_KINDS, RIGHT_TYPES, createRecord, amendRecord, recordProblems, checklist } from "./records.js";
 import { createLookup, RADII_KM } from "./lookup.js";
@@ -157,10 +158,9 @@ function form(record) {
   const rights = h("div", { class: "rights" }, ...(d.rights.length ? d.rights : [{ type: "ownership" }]).map(rightRow));
   const errors = h("ul", { class: "error", role: "alert" });
   const field = (label, input) => h("label", { class: "field" }, h("span", {}, label), input);
-  // The restricted-wasm-v1 sandbox has no allow-forms: a form's submit event never fires there.
-  // The button and Enter in a single-line field call submit() directly instead.
-  const f = h("form", { class: "card", novalidate: true, onsubmit: (e) => { e.preventDefault(); submit(); },
-    onkeydown: (e) => { if (e.key === "Enter" && !e.isComposing && e.target instanceof HTMLInputElement) { e.preventDefault(); submit(); } } },
+  // The restricted-wasm-v1 sandbox has no allow-forms (KOTOBA-159 B5): bindForm (guest-form.js)
+  // ties the button and Enter in a single-line field to submit(); no submit event is relied on.
+  const f = h("form", { class: "card", novalidate: true },
     h("h2", {}, record ? `${record.id} を修正` : "新しい記録"),
     field("法域", h("input", { name: "jurisdiction", list: "jur-list", value: d.jurisdiction, disabled: !!record, autocomplete: "off", "aria-describedby": "jur-hint" })),
     h("datalist", { id: "jur-list" }, ...Object.keys(catalog).map((k) => h("option", { value: k }, catalog[k].name))),
@@ -177,7 +177,7 @@ function form(record) {
     field("メモ", h("textarea", { name: "note", rows: 3 }, d.note ?? "")),
     errors,
     h("div", { class: "row" },
-      h("button", { type: "button", onclick: () => submit() }, record ? "修正を記録する" : "記録する"),
+      h("button", { type: "submit" }, record ? "修正を記録する" : "記録する"),
       h("button", { type: "button", class: "secondary", onclick: () => { view = "detail"; render(); } }, "やめる")));
 
   async function submit() {
@@ -195,6 +195,7 @@ function form(record) {
     await save();
     select(result.record.id);
   }
+  bindForm(f, () => submit());
   return f;
 }
 

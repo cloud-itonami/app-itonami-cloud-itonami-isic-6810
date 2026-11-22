@@ -111,6 +111,7 @@ try {
     set('jurisdiction', 'JPN'); set('address', '東京都港区芝公園四丁目'); set('lat', '35.658612345'); set('lon', '139.745412345');
     if (f.elements['holder']) set('holder', '試験 太郎');
     [...f.querySelectorAll('button')].find((b) => b.textContent === '記録する').click();
+    f.elements['address'].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   })()`);
   await waitFor(async () => (await evalIn(guestContext(), `[...document.querySelectorAll('button')].some((b) => b.textContent === 'Wikidata に照会')`)), 'record saved');
   const storageNote = await evalIn(guestContext(), `document.getElementById('storage').textContent`);

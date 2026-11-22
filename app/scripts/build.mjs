@@ -17,7 +17,7 @@ import { execFileSync } from "node:child_process";
 import { bundleModules, readModules } from "./guest-bundle.mjs";
 
 // The guest's modules, inlined into its one script (descriptor.js and jurisdictions.js are generated).
-const GUEST_MODULES = ["app.js", "store.js", "records.js", "closing.js", "lookup.js", "guest-port.js"];
+const GUEST_MODULES = ["app.js", "store.js", "records.js", "closing.js", "lookup.js", "guest-port.js", "guest-form.js"];
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const out = resolve(root, "dist");
