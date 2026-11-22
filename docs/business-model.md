@@ -29,10 +29,9 @@
 > are existing licensed real-estate businesses, and the product runs in the
 > operator's own environment. The company keeps no per-operator instance or
 > state on its servers. The "managed hosting subscription" line and the
-> "Managed Starter" tier below describe the earlier plan and are not offered
-> in that form; what replaces them (setup, support retainer, jurisdiction
-> pack) and at what price is not decided. The checkout link below is
-> unchanged.
+> "Managed Starter" tier below described the earlier plan and are not offered
+> in that form. What is sold instead is the self-hosted launch below: a setup
+> fee plus a support retainer, priced 2026-11-23 (owner, AWAI-3719).
 
 - self-host setup fee
 - managed hosting subscription per agency
@@ -44,7 +43,13 @@
 
 | Package | Customer | Price shape |
 |---|---|---|
-| Managed Starter | 店舗1–3・管理戸数100–500戸・内勤3–10名の地域密着型仲介兼管理会社 | ¥30,000/月 flat |
+| Self-hosted Launch (setup) | 店舗1–3・管理戸数100–500戸・内勤3–10名の地域密着型仲介兼管理会社 | ¥150,000 one-time (税別) |
+| Support & updates (monthly) | 同上 | ¥30,000/月 (税別) |
+
+The package is a setup engagement, not a hosted subscription: we install the
+registry in the operator's own environment, migrate their initial inventory,
+train once, and keep the jurisdiction pack current under the monthly retainer.
+The operator keeps the data; we keep no instance.
 
 **Market-anchored (2026-08-10)**: benchmarked against the real
 不動産業務管理/賃貸管理 and real-estate transaction-management markets. Of the
@@ -90,14 +95,13 @@ which いえらぶ actually sells a complete starter bundle, and with dotloop at
 mid-sized 6-agent office, so it is defensible from both the domestic and the
 international comparison axis.
 
-**Subscribe (2026-08-10)**: a live Stripe Payment Link for the Managed Starter
-tier (¥30,000/月 flat) is available now — [**subscribe to Managed
-Starter**](https://buy.stripe.com/aFadRa72vfVSe9OdiieEo06). This is a no-code
-Stripe-hosted checkout; nothing in this repo's actor code changed. After
-subscribing, contact gftdcojp to arrange managed-tenant setup (manual
-fulfillment today, no automated onboarding yet). **No agency has claimed or
-subscribed to this tier yet — this is a live, working checkout with zero paid
-tenants, not a claim of existing revenue.**
+**Checkout (link retired 2026-11-23, replacement pending)**: the earlier Stripe
+Payment Link for "Managed Starter" (`buy.stripe.com/aFadRa72vfVSe9OdiieEo06`,
+¥30,000/月 flat, created 2026-08-10) sold managed hosting, which is not what we
+deliver, so it is retired. The two links that replace it — setup ¥150,000 and
+monthly ¥30,000 — must be created in the Stripe dashboard by the owner; until
+they exist this document carries no live link. **No agency has claimed or
+subscribed to any tier — zero paid tenants, not a claim of existing revenue.**
 
 ## Trust Controls
 - listings require an identified parcel
