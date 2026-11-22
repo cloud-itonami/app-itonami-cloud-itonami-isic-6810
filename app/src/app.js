@@ -444,8 +444,5 @@ $("facts-count").textContent = `${Object.keys(catalog).length} 法域、facts.cl
   await load();
   selected = records[0]?.id ?? null;
   render();
-  try {
-    const info = await globalThis.__TAURI__?.core?.invoke("awai_host_info");
-    if (info) $("env").textContent = ` 実行環境: Awai shell（${info.app}）`;
-  } catch { /* plain browser */ }
+  // The Tauri host info is shown by the host page (host.js): the sandboxed guest has no IPC.
 })();

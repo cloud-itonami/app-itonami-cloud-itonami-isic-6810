@@ -62,6 +62,16 @@ function renderSettings() {
   }));
 }
 
+// The Tauri shell's read-only host info. The sandboxed guest cannot reach the Tauri IPC, so the
+// host shows it (the guest's own line stays empty).
+async function showEnvironment() {
+  try {
+    const info = await globalThis.__TAURI__?.core?.invoke("awai_host_info");
+    if (info) document.getElementById("env").textContent = `実行環境: Awai shell（${info.app}）`;
+  } catch { /* plain browser */ }
+}
+
 allowed.onChange(() => { renderSettings(); mount(); });
+showEnvironment();
 renderSettings();
 await mount();

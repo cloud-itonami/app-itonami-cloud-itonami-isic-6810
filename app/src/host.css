@@ -9,3 +9,5 @@ body { display: flex; flex-direction: column; background: Canvas; color: CanvasT
 .settings button { margin-inline-start: .6rem; }
 .settings .note { font-size: .85rem; }
 .problem { margin: 1rem; color: #b3261e; }
+.env { margin: 0; padding: 0 1rem .4rem; font-size: .8rem; color: GrayText; }
+.env:empty { display: none; }
