@@ -15,6 +15,7 @@ import { clientRuntimeProblems, clientRuntimeConnectSrc } from "../vendor/kotoba
 import { readDef } from "./edn.mjs";
 import { execFileSync } from "node:child_process";
 import { bundleModules, readModules } from "./guest-bundle.mjs";
+import { checkNoSubmit } from "./check-no-submit.mjs";
 
 // The guest's modules, inlined into its one script (descriptor.js and jurisdictions.js are generated).
 const GUEST_MODULES = ["app.js", "store.js", "records.js", "closing.js", "lookup.js", "guest-port.js", "guest-form.js"];
@@ -57,6 +58,8 @@ const modules = await readModules(resolve(root, "src"), GUEST_MODULES);
 modules["descriptor.js"] = `export default ${JSON.stringify(descriptor)};\n`;
 modules["jurisdictions.js"] = `export default ${JSON.stringify(facts)};\n`;
 export const guestScript = bundleModules(modules, "app.js");
+// The sandbox has no allow-forms (B5): the guest must not rely on a submit event (itonami-lib guard).
+checkNoSubmit(guestScript, "the restricted guest script");
 export const guestStyle = await readFile(resolve(root, "src/style.css"), "utf8");
 if (/<\/style/i.test(guestStyle)) throw new Error("src/style.css contains </style");
 export const CSP = `default-src 'none'; script-src 'self' ${cspHash(preambleMatch[1])} ${cspHash(guestScript)}; style-src 'self' ${cspHash(guestStyle)}; img-src 'self' data:; connect-src ipc: http://ipc.localhost ${connectSrc}; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'`;
@@ -75,6 +78,7 @@ if (!state.commit) throw new Error("restricted-wasm-v1 pins the guest to its sou
 const template = await readFile(resolve(root, "src/guest.html"), "utf8");
 for (const marker of ["{{STYLE}}", "{{SCRIPT}}"]) if (template.split(marker).length !== 2) throw new Error(`guest.html must contain ${marker} once`);
 export const guest = template.replace("{{STYLE}}", () => guestStyle).replace("{{SCRIPT}}", () => guestScript);
+checkNoSubmit(guest, "the restricted guest");
 if (guest.length > 8388608) throw new Error("the guest exceeds the 8 MiB mount budget");
 const guestBytes = new TextEncoder().encode(guest);
 const artifact = { revision: state.commit, sha256: sha(guestBytes), "max-bytes": guestBytes.byteLength };

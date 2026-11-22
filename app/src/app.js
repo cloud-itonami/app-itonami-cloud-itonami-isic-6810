@@ -177,7 +177,7 @@ function form(record) {
     field("メモ", h("textarea", { name: "note", rows: 3 }, d.note ?? "")),
     errors,
     h("div", { class: "row" },
-      h("button", { type: "submit" }, record ? "修正を記録する" : "記録する"),
+      h("button", { type: "button", "data-submit": true }, record ? "修正を記録する" : "記録する"),
       h("button", { type: "button", class: "secondary", onclick: () => { view = "detail"; render(); } }, "やめる")));
 
   async function submit() {
