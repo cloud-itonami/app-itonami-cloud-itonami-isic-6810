@@ -4,7 +4,7 @@
 // jinushi land-ownership actor ingests (jinushi.methods.normalize-wdqs). The
 // query goes straight from this device to query.wikidata.org through the
 // shared Kotoba broker, and only after a fresh approval of that one request;
-// the dialog shows the coordinates and radius that will be sent. Denying sends
+// the dialog shows the rounded (about 100 m) coordinates and radius that will be sent. Denying sends
 // nothing. Results are statements in Wikidata, not a land register.
 //
 // Like jinushi, the app does not show natural persons by name: an owner that
@@ -20,15 +20,30 @@ export function lookupOperation(descriptor) {
   return op;
 }
 
-const coord = (v, lim) => {
+// Legal (2026-11-22, AWAI-3828): only the approximate place leaves the device. Coordinates are
+// rounded to 3 decimal places (about 100 m: 0.001° of latitude is 111 m) before they are sent. A
+// radius under 100 m would get the coarsest precision that still fits it (never finer than needed);
+// every offered radius is at least 500 m, so today it is always 3 decimals.
+const METERS_PER_DEGREE = 111_320;
+export const BASE_DECIMALS = 3;
+export function decimalsFor(radiusKm) {
+  const radiusM = radiusKm * 1000;
+  let d = BASE_DECIMALS;
+  while (METERS_PER_DEGREE / 10 ** d > radiusM && d < 6) d += 1;
+  return d;
+}
+export function roundCoordinate(v, lim, decimals = BASE_DECIMALS) {
   const x = Number(v);
   if (!Number.isFinite(x) || Math.abs(x) > lim) throw new RangeError("invalid coordinate");
-  return Math.round(x * 1e5) / 1e5; // ~1 m; nothing finer is sent
-};
+  const f = 10 ** decimals;
+  const r = Math.round(x * f) / f;
+  return Object.is(r, -0) ? 0 : r;
+}
 
 export function buildQuery({ lat, lon, radiusKm }) {
   if (!RADII_KM.includes(radiusKm)) throw new RangeError("radius must be one of the offered values");
-  const point = `Point(${coord(lon, 180)} ${coord(lat, 90)})`;
+  const d = decimalsFor(radiusKm);
+  const point = `Point(${roundCoordinate(lon, 180, d)} ${roundCoordinate(lat, 90, d)})`;
   return [
     "SELECT ?item ?itemLabel ?owner ?ownerLabel ?human ?coord ?dist WHERE {",
     "  SERVICE wikibase:around {",

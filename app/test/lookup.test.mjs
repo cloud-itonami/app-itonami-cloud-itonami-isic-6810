@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { resolve, join } from "node:path";
 import { createHash } from "node:crypto";
 import * as runtime from "../dist/kotoba-client-runtime.js";
-import { buildQuery, lookupUrl, parseResults, lookupOperation, createLookup } from "../dist/lookup.js";
+import { buildQuery, lookupUrl, parseResults, lookupOperation, createLookup, decimalsFor, roundCoordinate, RADII_KM } from "../dist/lookup.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const read = (p) => readFile(resolve(root, p), "utf8");
@@ -37,7 +37,7 @@ test("page and Tauri CSP allow only Wikidata besides IPC", async () => {
 
 test("the query sends only rounded coordinates and an offered radius", () => {
   const q = buildQuery({ lat: 35.658612345, lon: 139.745412345, radiusKm: 1 });
-  assert.match(q, /Point\(139\.74541 35\.65861\)/);
+  assert.match(q, /Point\(139\.745 35\.659\)/);
   assert.match(q, /wikibase:radius "1"/);
   assert.match(q, /wdt:P127/);
   assert.throws(() => buildQuery({ lat: 0, lon: 0, radiusKm: 3 }), /radius/);
@@ -134,4 +134,26 @@ test("release manifest pins every shipped file, the runtime and realty.facts", a
     assert.equal(createHash("sha256").update(await readFile(resolve(root, "vendor", name))).digest("hex"), digest);
   }
   assert.equal(release.facts.sha256, createHash("sha256").update(await readFile(resolve(root, "../src/realty/facts.cljk"))).digest("hex"));
+});
+
+test("only the approximate place is sent: about 100 m (3 decimals) for every offered radius", () => {
+  for (const r of RADII_KM) assert.equal(decimalsFor(r), 3, `radius ${r} km`);
+  // A radius under 100 m would need a finer grid, but only as fine as the radius.
+  assert.equal(decimalsFor(0.05), 4);
+  assert.equal(decimalsFor(0.005), 5);
+  assert.equal(roundCoordinate(35.6586, 90), 35.659);
+  assert.equal(roundCoordinate(-0.0004, 90), 0);
+  assert.equal(roundCoordinate(139.7454999, 180), 139.745);
+  assert.throws(() => roundCoordinate(Number.NaN, 90), /coordinate/);
+  // Whatever the input precision, the query carries at most 3 decimals per coordinate.
+  for (const [lat, lon] of [[35.658612345, 139.745412345], [-33.8567844, 151.213108], [0.00049, -0.00051], [89.9999999, -179.9999999]]) {
+    for (const radiusKm of RADII_KM) {
+      const q = buildQuery({ lat, lon, radiusKm });
+      const [, x, y] = /Point\((-?[\d.]+) (-?[\d.]+)\)/.exec(q);
+      for (const v of [x, y]) assert.ok(!v.includes(".") || v.split(".")[1].length <= 3, `${v} in ${q}`);
+      assert.ok(Math.abs(Number(y) - lat) <= 0.0005 + 1e-12 && Math.abs(Number(x) - lon) <= 0.0005 + 1e-12);
+    }
+  }
+  // Two homes about 30 m apart send the same place.
+  assert.equal(buildQuery({ lat: 35.65861, lon: 139.74541, radiusKm: 0.5 }), buildQuery({ lat: 35.65880, lon: 139.74520, radiusKm: 0.5 }));
 });
