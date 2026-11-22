@@ -9,7 +9,6 @@
 //
 // Like jinushi, the app does not show natural persons by name: an owner that
 // Wikidata types as a human (Q5) is shown as "個人".
-import { createClientOperationBroker } from "./kotoba-client-runtime.js";
 
 export const MAX_BYTES = 2_000_000;
 export const RADII_KM = Object.freeze([0.5, 1, 5, 25]);
@@ -112,22 +111,20 @@ async function boundedText(response, max) {
   return new TextDecoder().decode(all);
 }
 
-export function createLookup({ descriptor, consentHost }) {
+/**
+ * The lookup inside the restricted-wasm-v1 guest. `invoke(selector, payload)` is the host port
+ * (guest-port.js): the canonical broker on the host page checks the request against the
+ * descriptor, asks the user and sends it. The guest itself can reach no network.
+ */
+export function createLookup({ descriptor, invoke }) {
   const op = lookupOperation(descriptor);
   const selector = { capability: op.capability, service: op.service, operation: op.operation };
-  const broker = createClientOperationBroker({
-    runtime: descriptor,
-    requestedCapabilities: descriptor.operations.map((o) => o.capability),
-    approvedOperations: [op],
-    hostSupportedOperations: [[op.capability, op.service, op.operation]],
-    consentHost,
-  });
   return {
     operation: op,
     /** Ask, then query. Throws "client operation was not approved" when denied. */
     async search({ lat, lon, radiusKm, signal }) {
       const input = lookupUrl(op, buildQuery({ lat, lon, radiusKm }));
-      const response = await broker.invoke(selector, { input }, { signal });
+      const response = await invoke(selector, { input }, { signal });
       if (!response.ok) throw new Error(`Wikidata answered ${response.status}`);
       const results = parseResults(JSON.parse(await boundedText(response, MAX_BYTES)));
       return { results, retrievedAt: new Date().toISOString() };

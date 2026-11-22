@@ -1,8 +1,9 @@
-// UI for the registry app. All records live in IndexedDB on this device; the
-// only network request is the consented Wikidata lookup (lookup.js).
+// UI for the registry app (the restricted-wasm-v1 guest, KOTOBA-159). Records are kept on this
+// device through store.js; the only network request is the consented Wikidata lookup (lookup.js),
+// sent by the host's canonical broker over the guest port (guest-port.js).
 import descriptor from "./descriptor.js";
 import facts from "./jurisdictions.js";
-import { createClientConsentHost } from "./kotoba-client-runtime.js";
+import { createGuestPort } from "./guest-port.js";
 import { openStore } from "./store.js";
 import { PROPERTY_KINDS, RIGHT_TYPES, createRecord, amendRecord, recordProblems, checklist } from "./records.js";
 import { createLookup, RADII_KM } from "./lookup.js";
@@ -12,8 +13,8 @@ const catalog = facts.catalog;
 const KEY = "records";
 const CASES_KEY = "closings";
 const store = openStore();
-const consentHost = createClientConsentHost();
-const lookup = createLookup({ descriptor, consentHost });
+const guestPort = createGuestPort();
+const lookup = createLookup({ descriptor, invoke: guestPort.invoke });
 
 const GATE_LABELS = {
   "important-matters-explained": "重要事項説明（宅地建物取引士）",
@@ -156,7 +157,10 @@ function form(record) {
   const rights = h("div", { class: "rights" }, ...(d.rights.length ? d.rights : [{ type: "ownership" }]).map(rightRow));
   const errors = h("ul", { class: "error", role: "alert" });
   const field = (label, input) => h("label", { class: "field" }, h("span", {}, label), input);
-  const f = h("form", { class: "card", novalidate: true, onsubmit: (e) => { e.preventDefault(); submit(); } },
+  // The restricted-wasm-v1 sandbox has no allow-forms: a form's submit event never fires there.
+  // The button and Enter in a single-line field call submit() directly instead.
+  const f = h("form", { class: "card", novalidate: true, onsubmit: (e) => { e.preventDefault(); submit(); },
+    onkeydown: (e) => { if (e.key === "Enter" && !e.isComposing && e.target instanceof HTMLInputElement) { e.preventDefault(); submit(); } } },
     h("h2", {}, record ? `${record.id} を修正` : "新しい記録"),
     field("法域", h("input", { name: "jurisdiction", list: "jur-list", value: d.jurisdiction, disabled: !!record, autocomplete: "off", "aria-describedby": "jur-hint" })),
     h("datalist", { id: "jur-list" }, ...Object.keys(catalog).map((k) => h("option", { value: k }, catalog[k].name))),
@@ -173,7 +177,7 @@ function form(record) {
     field("メモ", h("textarea", { name: "note", rows: 3 }, d.note ?? "")),
     errors,
     h("div", { class: "row" },
-      h("button", { type: "submit" }, record ? "修正を記録する" : "記録する"),
+      h("button", { type: "button", onclick: () => submit() }, record ? "修正を記録する" : "記録する"),
       h("button", { type: "button", class: "secondary", onclick: () => { view = "detail"; render(); } }, "やめる")));
 
   async function submit() {
@@ -397,7 +401,7 @@ function lookupCard(r) {
   const results = h("ul", { class: "results" });
   const go = h("button", { type: "button" }, "Wikidata に照会");
   card.append(
-    h("p", { class: "hint" }, "Wikidata に「所有者」（P127）が書かれた周辺の場所を探します。押すと、送る内容（この記録の緯度・経度と範囲）を示して毎回確認します。拒否すれば何も送りません。結果は Wikidata の記載で、登記簿ではありません。個人の所有者は名前を表示しません。"),
+    h("p", { class: "hint" }, "Wikidata に「所有者」（P127）が書かれた周辺の場所を探します。押すと、送る内容（この記録のおおよその位置〔約 100 m に丸めた緯度・経度〕と範囲）を示して毎回確認します。拒否すれば何も送りません。結果は Wikidata の記載で、登記簿ではありません。個人の所有者は名前を表示しません。"),
     h("div", { class: "row" }, radius, go), status, results);
 
   const show = (found) => {
@@ -422,8 +426,11 @@ function lookupCard(r) {
       show(lastLookup);
     } catch (e) {
       const denied = /not approved/.test(e.message);
-      status.textContent = denied ? "照会しませんでした（何も送っていません）。" : `照会できませんでした: ${e.message}`;
-      status.classList.toggle("error", !denied);
+      const withdrawn = /not eligible and supported/.test(e.message);
+      status.textContent = denied ? "照会しませんでした（何も送っていません）。"
+        : withdrawn ? "この照会は 設定 › 許可した送信 で取り消されています（何も送っていません）。"
+          : `照会できませんでした: ${e.message}`;
+      status.classList.toggle("error", !denied && !withdrawn);
     } finally { go.disabled = false; }
   });
   return card;

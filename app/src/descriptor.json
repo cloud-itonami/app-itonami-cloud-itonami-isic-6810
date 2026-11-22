@@ -1,10 +1,10 @@
 {
   "schema": "kotoba.app.client-runtime.v1",
   "target": "browser",
-  "profile": "trusted-page-v1",
+  "profile": "restricted-wasm-v1",
   "entry": "index.html",
   "local-state": {
-    "adapter": "indexeddb",
+    "adapter": "memory",
     "schema": "itonami.registry.v1",
     "version": 1
   },
@@ -26,10 +26,33 @@
           {
             "method": "GET",
             "path": "/sparql",
-            "query-params": ["query", "format"],
-            "query-values": { "format": "json" }
+            "query-params": [
+              "query",
+              "format"
+            ],
+            "query-values": {
+              "format": "json"
+            }
           }
         ]
+      },
+      "disclosure": {
+        "recipient": "Wikimedia Foundation, Inc.",
+        "country": "US",
+        "country-name": "アメリカ合衆国",
+        "foreign-info-url": "https://disclosures.awai.network/network.itonami.registry/foreign-info.html#us",
+        "data": [
+          "登録した物件のおおよその位置（約 100 m に丸めた緯度と経度）",
+          "調べる半径",
+          "端末の IP アドレス",
+          "送信の時刻",
+          "ブラウザの種類と版"
+        ],
+        "special-care": false,
+        "purpose": "登録した物件の近くにある、所有者の公開された記載を Wikidata で調べるため",
+        "frequency": "one-time",
+        "withdrawal": "設定 › 許可した送信",
+        "note": "物件のおおよその位置（約 100 m 単位）を米国の Wikimedia Foundation に送ります。自宅を登録している場合は、ご注意ください。"
       }
     }
   ]
