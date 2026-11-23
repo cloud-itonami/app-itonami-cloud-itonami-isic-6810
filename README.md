@@ -34,6 +34,20 @@ Here it is **Realtor-LLM ⊣ RealtorGovernor**.
 kept on the device, the jurisdiction procedure from `realty.facts`, and a
 consented lookup of public ownership statements. See [`app/README.md`](app/README.md).
 
+### Android release signing (env)
+
+Release signing reads four environment variables — all four are required for a
+release build, and a release build without one fails with
+`signing env not set` naming the missing vars. Do not commit any value or
+path to this repo:
+
+- `AWAI_KEYSTORE_PATH` → `storeFile` (keystore location)
+- `AWAI_KEYSTORE_PASSWORD` → `storePassword`
+- `AWAI_KEY_ALIAS` → `keyAlias`
+- `AWAI_KEY_PASSWORD` → `keyPassword`
+
+Debug builds stay as-is and do not require these vars.
+
 ## Business bots
 
 Four on-demand Itonami bot profiles in `hermes/profiles/` share the business

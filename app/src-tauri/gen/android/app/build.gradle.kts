@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.gradle.api.GradleException
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -26,6 +27,33 @@ android {
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("AWAI_KEYSTORE_PATH")
+            val keystorePassword = System.getenv("AWAI_KEYSTORE_PASSWORD")
+            val keyAliasName = System.getenv("AWAI_KEY_ALIAS")
+            val keyPasswordValue = System.getenv("AWAI_KEY_PASSWORD")
+            val missing = buildList {
+                if (keystorePath.isNullOrBlank()) add("AWAI_KEYSTORE_PATH")
+                if (keystorePassword.isNullOrBlank()) add("AWAI_KEYSTORE_PASSWORD")
+                if (keyAliasName.isNullOrBlank()) add("AWAI_KEY_ALIAS")
+                if (keyPasswordValue.isNullOrBlank()) add("AWAI_KEY_PASSWORD")
+            }
+            if (missing.isNotEmpty()) {
+                val isReleaseTask = gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
+                if (isReleaseTask) {
+                    throw GradleException("signing env not set: missing ${missing.joinToString(", ")} -- release signing requires AWAI_KEYSTORE_PATH, AWAI_KEYSTORE_PASSWORD, AWAI_KEY_ALIAS, AWAI_KEY_PASSWORD (debug build stays as-is)")
+                }
+                // Non-release tasks (debug, help) must still resolve without signing env;
+                // leave the release config unpopulated, it is never used for debug signing.
+            } else {
+                storeFile = file(keystorePath!!)
+                storePassword = keystorePassword
+                keyAlias = keyAliasName
+                keyPassword = keyPasswordValue
+            }
+        }
+    }
     buildTypes {
         getByName("debug") {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
@@ -40,6 +68,7 @@ android {
             }
         }
         getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
             optimization {
                enable = true
             }
