@@ -101,10 +101,60 @@ a clean closing proposal still always routes to a human.
 ## Run
 
 ```bash
+./scripts/setup.sh   # one-command standalone: resolve deps -> seed (in-memory) -> demo
 kbb -M:dev:run     # walk one clean closing + one HARD-hold case through the actor
-kbb -M:dev:test    # governor contract · phase invariants · store parity · registry conformance
+kbb -M:dev:physai-test  # kbb test suite: 80 tests (see below)
 kbb -M:lint        # clj-kondo (errors fail; CI mirrors this)
 ```
+
+This repo is standalone-installable (M2/M4 step 1): every dependency in
+`deps.edn` is a git coordinate — `io.github.kotoba-lang/langgraph`,
+`io.github.kotoba-lang/robotics`, `io.github.kotoba-lang/langchain` (dev
+override), and the optional `io.github.cloud-itonami/cloud-itonami-isic-8291`
+all resolve from GitHub in a fresh clone in an empty directory, with no
+`:local/root` into a monorepo checkout. Transitive kotoba stdlib libs
+(`error`, `io`, `json`, `bytes`, `set`, `walk`, `spec`, `kudaki`) are
+pinned top-level at the same kotoba sha so duplicate git checkouts do
+not collide ("No known ancestor relationship"). Docker is **not used**:
+no `docker-compose.yml` / `Dockerfile` / container step anywhere; the
+demo and tests run via `kbb` (JVM-free) or `clojure`, against in-memory
+stores (`realty.store/seed-db` — there is no database to seed).
+
+See [`docs/operator-quickstart.md`](docs/operator-quickstart.md) for the
+5-minute walkthrough.
+
+### What does NOT work (honest)
+
+- **`kbb -M:dev:test` (full suite) does not pass on main.** It also loads
+  `test/realty/corporate_intel_test.cljk`, which requires `dossier.*`
+  from `cloud-itonami-isic-8291`. That upstream is `.kotoba`-only on
+  main, so the kbb/SCI engine dies with `Could not find namespace:
+  dossier.store`. The kbb suite that passes standalone is
+  `kbb -M:dev:physai-test` (7 namespaces, corporate-intel excluded —
+  the same exclusion `deps.edn`'s `:physai-test` alias documents).
+- **`clojure -M:dev:test` (JVM) runs 0 tests.** The test files are
+  `.cljk`, which cognitect.test-runner does not discover on the JVM;
+  it prints `Ran 0 tests` and exits 0 (false green). Use kbb.
+- **`kbb -M:dev:render-html` does not resolve standalone.**
+  `realty.render-html` requires `jp-go-dds.skin`, and
+  `kotoba.jpGoDigitalDesignSystem`'s own `deps.edn` transitively names
+  `io.github.kotoba-lang/osaho` at `https://github.com/kotoba-lang/osaho.git`,
+  a deleted upstream repo. The lib now lives at
+  `lib/kotoba.osaho` in `kotoba-lang/kotoba`, but jp-go-dds still names
+  the deleted URL, so tools.deps/kbb fail to clone it. For that reason
+  jp-go-dds lives on the `:render-html` alias only, not top-level, so
+  test/demo classpaths do not try to clone it. The committed
+  `docs/samples/operator-console.html` sample still renders; regenerating
+  it standalone is blocked upstream.
+- **kbb's implicit-stdlib bootstrap fails on a fresh kotoba checkout.**
+  `bin/kbb`'s `stdlib_tail` tries to clone deleted
+  `kotoba-lang/text.git` (via `kotoba-library-import`'s transitive).
+  Workaround used in `scripts/setup.sh` and in the proof logs:
+  `KBB_NO_STDLIB=1` with a minimal `KBB_HOME` whose `nbb.edn` names
+  `kotoba.lang.text` as a git coordinate.
+- **NOT FOR SALE.** This repo is not for sale and has no checkout /
+  payment links (AWAI-3719 M1–M7 wording, PR #22). Steps 6/10 and any
+  Stripe links are out of scope for this standalone step.
 
 ## Robotics premise
 

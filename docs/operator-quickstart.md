@@ -11,28 +11,49 @@ Get the Community Real-Estate Agency running locally in under 5 minutes.
 
 ## Prerequisites
 
-- **Clojure CLI** (≥1.11) — [install](https://clojure.org/guides/install_clojure)
+- **Java** (21+) and **Clojure CLI** (≥1.11) — [install](https://clojure.org/guides/install_clojure) (`clojure -Spath` must resolve; `/usr/bin/java` stub on macOS needs `JAVA_HOME=/opt/homebrew/opt/openjdk`)
 - **Git** — clone this repository
-- **langgraph-clj** — included as `:local/root` dependency in `deps.edn` (workspace checkout only; standalone forks should use git coordinates)
+- **kbb** — the JVM-free test/demo runner (`bin/kbb` in `kotoba-lang/kotoba`, engine `kotoba-lang/org-babashka-nbb`); see `scripts/setup.sh`
+- **langgraph** — a git coordinate in `deps.edn` (`io.github.kotoba-lang/langgraph` → `https://github.com/kotoba-lang/kotoba.git`, `:deps/root "lib/kotoba.langgraph"`). No monorepo checkout is needed.
 
-If you're working in the monorepo, all dependencies resolve to local checkouts:
-- `io.github.com-junkawasaki/langgraph-clj` → `../../kotoba-lang/langgraph`
-- `io.github.cloud-itonami/cloud-itonami-isic-8291` → `../cloud-itonami-isic-8291` (optional corporate intelligence integration)
+This repo is standalone-installable (M2/M4 step 1): every dependency in
+`deps.edn` is a git coordinate (or Maven), with no `:local/root` into a
+monorepo checkout. A fresh clone in an empty directory outside any
+monorepo resolves on its own:
+
+```bash
+git clone https://github.com/cloud-itonami/app-itonami-cloud-itonami-isic-6810.git
+cd app-itonami-cloud-itonami-isic-6810
+./scripts/setup.sh   # resolve deps -> seed (in-memory) -> demo
+```
+
+Docker is **not used** — there is no `docker-compose.yml`, `Dockerfile`, or
+container step in this repo or in `scripts/setup.sh`. The demo is a
+`kbb`/`clojure` JVM-free run against in-memory stores.
 
 ## Run Tests
 
 ```bash
-kbb -M:dev:test
+kbb -M:dev:physai-test
 ```
 
-This runs the full test suite:
+This is the kbb test suite (7 namespaces, the ones that load on the
+kbb/SCI engine):
+
+- **Physics spec** — `physics.edn` is valid and every declared run is measured
 - **Governor contract** — spec-basis citations, KYC hold enforcement, actuation gate (never auto-closes)
 - **Phase invariants** — read-only → assisted intake → assess/screen → supervised (closing always human)
 - **Store parity** — in-memory ‖ Datomic consistency
 - **Registry conformance** — closing record spec-compliance
 - **Facts coverage** — honest reporting of jurisdiction coverage (currently 6 seeded; no fabrication)
+- **Observation contract** — provenance-preserving observations of recorded registry events
 
 Key invariant verified: **`:closing/submit` is never in any phase's `:auto` set.** A human is always the one who records the title transfer and releases escrow.
+
+`kbb -M:dev:test` is the full suite alias and additionally tries to load
+`realty.corporate-intel-test`, which requires `dossier.*` from
+`cloud-itonami-isic-8291`. That upstream is `.kotoba`-only on main, so it
+does not load on kbb/SCI or JVM Clojure (see README "What does NOT work").
 
 ## Run the Demo
 
@@ -45,6 +66,7 @@ This walks two scenarios through the actor:
 2. A hard-hold case (sanctions hit, un-overridable, escalates)
 
 Output includes the closing record, audit ledger entries, and governor decision logs.
+The seed is in-memory (`realty.store/seed-db`); there is no database to seed.
 
 ## Understand the Governor
 
