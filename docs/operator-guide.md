@@ -1,7 +1,8 @@
 # Operator Guide
 
-For the Managed Starter tier, the steps from checkout to a usable instance and
-their current state are in [onboarding-managed-starter.md](onboarding-managed-starter.md).
+For the Self-hosted Launch (setup) tier, the steps from install to a usable setup and
+their current state are in [onboarding-managed-starter.md](onboarding-managed-starter.md)
+(note: that file is still titled "Managed Starter" from the retired tier; its step table marks 5/6/10/12–13 as missing — see M2/M4 in [self-hosted-offer.md](self-hosted-offer.md)).
 
 ## First Deployment
 1. Register agency, parcels, agents and operators.
