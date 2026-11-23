@@ -34,7 +34,7 @@
 > fee plus a support retainer, priced 2026-11-23 (owner, AWAI-3719).
 
 - self-host setup fee
-- managed hosting subscription per agency
+- ~~managed hosting subscription per agency~~ (deleted 2026-11-23: not offered. The product is self-contained — it runs in the operator's own environment, and the company keeps no per-operator instance on its servers.)
 - support retainer with SLA
 - listing and settlement integration
 - per-closing execution fee (intake through closing handoff)
