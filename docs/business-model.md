@@ -35,7 +35,7 @@
 
 - self-host setup fee
 - ~~managed hosting subscription per agency~~ (deleted 2026-11-23: not offered. The product is self-contained — it runs in the operator's own environment, and the company keeps no per-operator instance on its servers.)
-- support retainer with SLA
+- support retainer (best effort, weekdays 10:00–18:00 JST, one email window; no numeric response promise)
 - listing and settlement integration
 - per-closing execution fee (intake through closing handoff)
 - jurisdiction-pack licensing: a maintained, spec-cited disclosure/title
@@ -46,10 +46,7 @@
 | Self-hosted Launch (setup) | 店舗1–3・管理戸数100–500戸・内勤3–10名の地域密着型仲介兼管理会社 | ¥150,000 one-time (税別) |
 | Support & updates (monthly) | 同上 | ¥30,000/月 (税別) |
 
-The package is a setup engagement, not a hosted subscription: we install the
-registry in the operator's own environment, migrate their initial inventory,
-train once, and keep the jurisdiction pack current under the monthly retainer.
-The operator keeps the data; we keep no instance.
+The package is a setup engagement, not a hosted subscription: we provide repo setup support for the operator's own environment, a procedure for migrating their initial inventory, and one training. It does not promise the full 3-app install (登記・締結前確認・引渡し) until an installable package exists (M2/M4). Under the monthly retainer we prepare to track jurisdiction changes (provisional pack; we call it "maintain" only after a licensed reviewer is confirmed). The operator keeps the data; we keep no instance.
 
 **Market-anchored (2026-08-10)**: benchmarked against the real
 不動産業務管理/賃貸管理 and real-estate transaction-management markets. Of the
@@ -99,8 +96,8 @@ international comparison axis.
 tax handling, billing cycles and cancellation proposals for the replacement
 links are in [self-hosted-offer.md](self-hosted-offer.md); that page is the
 slot the two Payment Links fill. This document must not claim purchasability
-until the links exist (Stripe links are not yet created; credential (a) or
-(b) to be chosen, §7 of that page). The earlier Stripe Payment Link for
+until the links exist (Stripe links are not yet created; the owner creates them
+in the Stripe dashboard, see §6 of that page). The earlier Stripe Payment Link for
 "Managed Starter" (`buy.stripe.com/aFadRa72vfVSe9OdiieEo06`, ¥30,000/月
 flat, created 2026-08-10) sold managed hosting, which is not what we deliver,
 so it is retired — see the one-paragraph retirement note in
