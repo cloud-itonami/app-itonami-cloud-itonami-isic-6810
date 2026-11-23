@@ -2,3 +2,6 @@
 /target/
 /out/
 .nbb/
+*.jks
+*.keystore
+release.jks
