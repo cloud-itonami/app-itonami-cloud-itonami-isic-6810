@@ -131,7 +131,8 @@
                             "-n" "realty.observation-test"
                             "-n" "realty.phase-test"
                             "-n" "realty.registry-test"
-                            "-n" "realty.store-contract-test"]}
+                            "-n" "realty.store-contract-test"
+                            "-n" "realty.user-role-record-test"]}
   ;; standalone dev -- pin transitive langchain to the same git
   ;; coordinate (was a :local/root into ../../kotoba-lang/langchain).
   :dev {:override-deps
