@@ -4,8 +4,8 @@
 
 Status: 2026-11-23 DRAFT — Stripe links are **not yet created**. This document is a
 replacement proposal for the Checkout section of `docs/business-model.md`. **Do not
-treat any price below as purchasable until the owner confirms link creation and the
-Stripe credential (a) or (b) is in place.** No live link appears here on purpose.
+treat any price below as purchasable until the owner creates Payment Links in the
+Stripe dashboard and the URL is verified (see §6).** No live link appears here on purpose.
 
 Owner decision (2026-11-23, AWAI-3719): what is sold first is **Self-hosted
 Launch** (setup ¥150,000 税別) plus **Support & updates** (monthly ¥30,000 税別),
@@ -97,4 +97,4 @@ Do not write “buy now / subscribe” for these. This table is the slot the rea
 - **M6 — wording weakened in this PR.** 「管轄パックの維持」→「法改正への追随準備（暫定パック。有資格レビュアー確定後に『維持』と表記）」。JPN は provisional、licensed reviewer unknown のまま。暫定を維持と書かない。
 - **M7 — decided (manual) in this PR.** Stripe Tax は使わない（有料のため。「有料系を使わない」方針）。請求書は税抜 / 消費税10% / 税込の3行を手動計算。価格表記は「¥150,000（税別）＋消費税10%を別途」で統一。
 
-No link is issued from this PR. The next step after owner resolves M1–M7 is: pick credential (a) restricted API key or (b) MCP/Composio (see §6 + report), create the two products/links, then swap the placeholders for real URLs in a follow-up PR.
+No link is issued from this PR. Future path (no Composio / no MCP): the owner creates Products/Prices/Payment Links in the Stripe dashboard (no API key is passed to this bot); this bot receives URLs only, verifies them in person (200, amount, currency, LIVE vs TEST), then swaps one link per PR. Do not place Stripe SDKs, API keys, or guessed URLs in code or docs.

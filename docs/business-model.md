@@ -96,8 +96,8 @@ international comparison axis.
 tax handling, billing cycles and cancellation proposals for the replacement
 links are in [self-hosted-offer.md](self-hosted-offer.md); that page is the
 slot the two Payment Links fill. This document must not claim purchasability
-until the links exist (Stripe links are not yet created; credential (a) or
-(b) to be chosen, §7 of that page). The earlier Stripe Payment Link for
+until the links exist (Stripe links are not yet created; the owner creates them
+in the Stripe dashboard, see §6 of that page). The earlier Stripe Payment Link for
 "Managed Starter" (`buy.stripe.com/aFadRa72vfVSe9OdiieEo06`, ¥30,000/月
 flat, created 2026-08-10) sold managed hosting, which is not what we deliver,
 so it is retired — see the one-paragraph retirement note in
