@@ -95,12 +95,16 @@ which いえらぶ actually sells a complete starter bundle, and with dotloop at
 mid-sized 6-agent office, so it is defensible from both the domestic and the
 international comparison axis.
 
-**Checkout (link retired 2026-11-23, replacement pending)**: the earlier Stripe
-Payment Link for "Managed Starter" (`buy.stripe.com/aFadRa72vfVSe9OdiieEo06`,
-¥30,000/月 flat, created 2026-08-10) sold managed hosting, which is not what we
-deliver, so it is retired. The two links that replace it — setup ¥150,000 and
-monthly ¥30,000 — must be created in the Stripe dashboard by the owner; until
-they exist this document carries no live link. **No agency has claimed or
+**Checkout (PLACEHOLDER — not purchasable, 2026-11-23)**: product definitions,
+tax handling, billing cycles and cancellation proposals for the replacement
+links are in [self-hosted-offer.md](self-hosted-offer.md); that page is the
+slot the two Payment Links fill. This document must not claim purchasability
+until the links exist (Stripe links are not yet created; credential (a) or
+(b) to be chosen, §7 of that page). The earlier Stripe Payment Link for
+"Managed Starter" (`buy.stripe.com/aFadRa72vfVSe9OdiieEo06`, ¥30,000/月
+flat, created 2026-08-10) sold managed hosting, which is not what we deliver,
+so it is retired — see the one-paragraph retirement note in
+[self-hosted-offer.md](self-hosted-offer.md) §5. **No agency has claimed or
 subscribed to any tier — zero paid tenants, not a claim of existing revenue.**
 
 ## Trust Controls
