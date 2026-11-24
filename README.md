@@ -48,6 +48,12 @@ path to this repo:
 
 Debug builds stay as-is and do not require these vars.
 
+To build a release APK, the owner exports the four variables above in
+their own shell (values stay in that shell and are never committed),
+then runs `./scripts/build-release-apk.sh` (or
+`npm run tauri:android:build -- --release`). The built APK is stored
+under `app/src-tauri/gen/android/app/build/outputs/apk/`.
+
 ## Business bots
 
 Four on-demand Itonami bot profiles in `hermes/profiles/` share the business
