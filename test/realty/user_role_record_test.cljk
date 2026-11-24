@@ -1,0 +1,62 @@
+(ns realty.user-role-record-test
+  "Step 2 acceptance (AWAI-3719): user/role as an append-only record --
+  four tests, one per acceptance clause. See realty.user-role-record."
+  (:require [kotoba.test :refer [deftest is]]
+            [realty.user-role-record :as ur]))
+
+(deftest role-never-auto-filled-four-states
+  (is (= ["未確認" "申請中" "有効" "不要"] ur/role-states))
+  (let [omitted (ur/make-record {:idempotency-key "k-omit"
+                                 :user "listing-1" :seen "listing-1"})
+        explicit (ur/make-record {:idempotency-key "k-explicit"
+                                  :user "listing-1" :seen "listing-1"
+                                  :role-state "有効"})]
+    (is (= "未確認" (:role-state omitted)) "omitted role-state records 未確認, never a guessed state")
+    (is (= "有効" (:role-state explicit)) "an explicit state is carried verbatim")
+    (is (thrown? Exception
+                 (ur/make-record {:idempotency-key "k-bad"
+                                  :user "listing-1" :seen "listing-1"
+                                  :role-state "auto"}))
+        "a state outside the closed four is refused, not filled in")))
+
+(deftest append-only-existing-rows-unchanged
+  (let [before (ur/append-record []
+                                 {:idempotency-key "k-1"
+                                  :user "listing-1" :seen "listing-1"
+                                  :role-kind "担当"})
+        after (ur/append-record before
+                                {:idempotency-key "k-2"
+                                 :user "listing-2" :seen "listing-2"
+                                 :role-kind "閲覧"})]
+    (is (= 1 (count before)))
+    (is (= 2 (count after)))
+    (is (= before (subvec after 0 (count before))) "append-only: existing rows unchanged")
+    (is (= 1 (count before)) "the prior history value itself is not mutated")))
+
+(deftest same-op-twice-one-row-idempotent
+  (let [op {:idempotency-key "k-same-op"
+            :user "listing-1" :seen "listing-1" :role-kind "担当"}
+        once (ur/append-record [] op)
+        twice (ur/append-record once op)]
+    (is (= 1 (count once)))
+    (is (= 1 (count twice)) "same op twice -> 1 row (idempotent)")
+    (is (= once twice))))
+
+(deftest no-personal-info-fields
+  (let [record (ur/make-record {:idempotency-key "k-clean"
+                                :user "listing-1" :seen "listing-1"
+                                :role-kind "閲覧"})]
+    (is (= ur/record-keys (set (keys record))) "a record carries exactly the allowed keys")
+    (doseq [k [:name :氏名 :contact :連絡先 :phone :電話 :email :メール :address :住所]]
+      (is (not (contains? record k)) (str "no personal-info field " k)))
+    (is (= "listing-1" (:user record)) "user is an existing subject id only")
+    (is (thrown? Exception
+                 (ur/make-record {:idempotency-key "k-pii"
+                                  :user "listing-1" :seen "listing-1"
+                                  :氏名 "山田"}))
+        "氏名 in the input is refused at record time")
+    (is (thrown? Exception
+                 (ur/make-record {:idempotency-key "k-pii-2"
+                                  :user "listing-1" :seen "listing-1"
+                                  :連絡先 "090-0000-0000"}))
+        "連絡先 in the input is refused at record time")))

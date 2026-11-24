@@ -1,0 +1,118 @@
+(ns realty.user-role-record
+  "User/role as an append-only RECORD (AWAI-3719 step 2), not an injected
+  actor-id/role.
+
+  Previously the actor context carried injected `:actor-id` / `:actor-role`
+  (see realty.sim / realty.render-html operator maps). An injected role is
+  a claim the caller makes at runtime; it is never proof that anyone saw
+  anything, and it can be filled in by whoever builds the context. This
+  namespace replaces that claim with a record: who (an EXISTING subject
+  id -- e.g. a listing/party id already in the store, never a new personal
+  identifier) saw what (another existing subject id), in which generic
+  role (担当 / 閲覧 -- a duty, never a person's name), and in which of the
+  four role states (未確認 / 申請中 / 有効 / 不要).
+
+  Invariants, each fixed by one test in
+  test/realty/user_role_record_test.cljk:
+
+  1. Role state is NEVER auto-filled. Omitting :role-state records
+     未確認 (unconfirmed); nothing here ever guesses 申請中 / 有効 / 不要
+     on anyone's behalf, and a state outside the closed four is refused.
+  2. Append-only. `append-record` returns a NEW history vector; rows
+     already in the history are carried over unchanged, in order.
+  3. Idempotent. Every record carries a caller-supplied
+     :idempotency-key; appending the same key twice yields ONE row.
+  4. No personal info. Records carry exactly the keys below. 氏名 /
+     連絡先 (name / contact) and their usual spellings are refused at
+     record time -- `user` is an existing subject id, `role-kind` is a
+     generic duty label, and nothing else about a person is carried.
+
+  NOT FOR SALE stays as-is (README / docs/self-hosted-offer.md); this
+  namespace adds no billing, Stripe, signing or key material, and does not
+  touch the listings import / own-data console (later steps)."
+  (:require [kotoba.lang.text :as str]))
+
+(def role-states
+  "The closed role-state vocabulary. Exactly these four, in this order --
+  extending the set is a contract change."
+  ["未確認" "申請中" "有効" "不要"])
+
+(def default-role-state
+  "What an omitted :role-state records. 未確認 means 'not yet confirmed':
+  the honest default, never a guessed confirmation."
+  "未確認")
+
+(def role-kinds
+  "The closed generic role-kind vocabulary: duties a subject id may hold,
+  never a personal identifier."
+  ["担当" "閲覧"])
+
+(def forbidden-keys
+  "Personal-info keys refused at record time: 氏名 / 連絡先 and their
+  common spellings. A record carrying any of these cannot exist."
+  #{:name :氏名 :contact :連絡先 :phone :電話 :email :メール
+    :address :住所 :id-doc})
+
+(def record-keys
+  "The exact key set of a recorded row -- nothing more is ever carried."
+  #{:record/id :idempotency-key :user :role-kind :role-state :seen
+    :immutable})
+
+(defn- refused
+  [msg]
+  (throw (ex-info msg {:refusal/code :user-role-record/refused
+                       :refusal/message msg})))
+
+(defn- nonempty-str? [v]
+  (and (string? v) (not (str/blank? v))))
+
+(defn make-record
+  "Build (validate + freeze) one user/role record from `input`:
+
+     {:idempotency-key \"...\"   ; required, caller-supplied, non-empty
+      :user              \"listing-1\" ; required: EXISTING subject id only
+      :seen              \"listing-1\" ; required: what was seen (subject id)
+      :role-kind         \"担当\" | \"閲覧\"  ; optional; must be in role-kinds
+      :role-state        \"未確認\" | \"申請中\" | \"有効\" | \"不要\"
+                         ; optional; omitted -> 未確認, never auto-filled
+                         ; to any other state}
+
+  Refuses (ex-info) a missing/blank idempotency key, user or seen, a
+  role-kind / role-state outside the closed vocabularies, and any input
+  carrying a forbidden personal-info key. The returned record carries
+  exactly `record-keys`."
+  [{:keys [idempotency-key user seen role-kind role-state] :as input}]
+  (when (some #(contains? input %) forbidden-keys)
+    (refused "user-role-record: personal info (氏名/連絡先) is refused -- user is an existing subject id only"))
+  (when-not (nonempty-str? idempotency-key)
+    (refused "user-role-record: :idempotency-key is required"))
+  (when-not (nonempty-str? user)
+    (refused "user-role-record: :user (existing subject id) is required"))
+  (when-not (nonempty-str? seen)
+    (refused "user-role-record: :seen (what was seen) is required"))
+  (when-not (or (nil? role-kind) (some #(= role-kind %) role-kinds))
+    (refused (str "user-role-record: unknown role-kind " (pr-str role-kind))))
+  (let [state (or role-state default-role-state)]
+    (when-not (some #(= state %) role-states)
+      (refused (str "user-role-record: unknown role-state " (pr-str state))))
+    {:record/id idempotency-key
+     :idempotency-key idempotency-key
+     :user user
+     :role-kind role-kind
+     :role-state state
+     :seen seen
+     :immutable true}))
+
+(defn append-record
+  "Append `input`'s record to `history`, returning a NEW vector.
+
+  Append-only: existing rows are carried over unchanged and in order.
+  Idempotent: if `history` already holds a row with the same
+  :idempotency-key, `history` is returned unchanged -- the same op twice
+  yields one row, never a duplicate."
+  [history input]
+  (let [record (make-record input)
+        key (:idempotency-key record)]
+    (if (some #(= key (:idempotency-key %)) history)
+      (vec history)
+      (conj (vec history) record))))
