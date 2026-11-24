@@ -1,10 +1,15 @@
-// Local state in IndexedDB (declared in descriptor.json as local-state).
+// Local state (declared in descriptor.json as local-state).
 // Every call fails soft: without storage nothing can be kept, and the app says so instead of
 // pretending a record was saved.
 const DB = "itonami.registry.v1";
 const STORE = "kv";
 
-export function openStore(indexedDB = globalThis.indexedDB) {
+// Inside the restricted-wasm-v1 guest (an opaque-origin sandbox) IndexedDB is refused: reading
+// it can throw, and open() fails. The app then says that nothing is kept. When the runtime offers
+// host-mediated storage (KOTOBA-968), this module is the one place that changes.
+function defaultIndexedDB() { try { return globalThis.indexedDB ?? null; } catch { return null; } }
+
+export function openStore(indexedDB = defaultIndexedDB()) {
   let dbPromise = null;
   const db = () => {
     if (!indexedDB) return Promise.reject(new Error("IndexedDB unavailable"));
