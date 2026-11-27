@@ -8,7 +8,10 @@
 // nothing. Results are statements in Wikidata, not a land register.
 //
 // Like jinushi, the app does not show natural persons by name: an owner that
-// Wikidata types as a human (Q5) is shown as "個人".
+// Wikidata types as a human (Q5) is shown as "個人". This masking is the
+// lookup half of the PII boundary in docs/pii-boundary.md (ZB20-SG01):
+// parseResults applies it before anything can be displayed or saved as a
+// record reference, and records.js referenceData re-applies it on save.
 import { createClientOperationBroker } from "./kotoba-client-runtime.js";
 
 export const MAX_BYTES = 2_000_000;

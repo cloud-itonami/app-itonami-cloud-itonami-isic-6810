@@ -45,12 +45,29 @@
 
 (def default-phase 3)
 
+(def conservative-phase
+  "The least-permissive phase. Unknown phases resolve here, never to
+  `default-phase`: `default-phase` is only the value a caller substitutes
+  when a phase was *omitted*, while an explicitly supplied value that is
+  not a key of `phases` (999, -1, nil, a keyword/string, ...) is a
+  configuration error and must fail closed (ZB20-N03)."
+  0)
+
+(defn known-phase?
+  "True only for the exact keys of `phases` (integers 0-3 today)."
+  [phase]
+  (contains? phases phase))
+
 (defn gate
   "Adjust a governor disposition for the rollout phase. Returns
   {:disposition kw :reason kw|nil}.
 
   - reads pass through unchanged (phase restricts autonomy, not reads).
   - a governor HOLD always stays HOLD (compliance wins).
+  - an unknown/out-of-range phase (not a key of `phases`) fails closed:
+    HOLD (:phase-unknown) before any read/write handling (a governor
+    HOLD still wins first). It never resolves to `default-phase` and
+    never auto-commits (ZB20-N03).
   - a write op not yet enabled in this phase -> HOLD (:phase-disabled).
   - a write op enabled but not auto-eligible -> ESCALATE (:phase-approval),
     even if the governor was clean.
@@ -58,9 +75,11 @@
     escalates once the governor clears it (or holds if the governor
     doesn't)."
   [phase {:keys [op]} governor-disposition]
-  (let [{:keys [writes auto]} (get phases phase (get phases default-phase))]
+  (let [known? (known-phase? phase)
+        {:keys [writes auto]} (get phases (if known? phase conservative-phase))]
     (cond
       (= :hold governor-disposition)       {:disposition :hold :reason nil}
+      (not known?)                         {:disposition :hold :reason :phase-unknown}
       (contains? read-ops op)              {:disposition governor-disposition :reason nil}
       (not (contains? writes op))          {:disposition :hold :reason :phase-disabled}
       (and (= :commit governor-disposition)
