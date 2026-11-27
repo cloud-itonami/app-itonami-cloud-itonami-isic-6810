@@ -38,6 +38,7 @@ const PROBLEM_LABELS = {
   "rights.holder": "権利者を入れてください。",
   "rights.since": "日付は YYYY-MM-DD で入れてください。",
   "jurisdiction-fixed": "法域は作成後に変えられません。新しい記録を作ってください。",
+  "pii-prohibited": "連絡先や公的識別子（メール・電話・マイナンバー等）は記録に保存できません。取り除いてください（docs/pii-boundary.md）。",
 };
 
 const CASE_PROBLEMS = {

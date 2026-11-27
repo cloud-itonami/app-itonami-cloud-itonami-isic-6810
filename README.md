@@ -48,6 +48,18 @@ path to this repo:
 
 Debug builds stay as-is and do not require these vars.
 
+## Privacy / PII boundary
+
+Owner/tenant personal data is bounded by [`docs/pii-boundary.md`](docs/pii-boundary.md):
+which record fields are permitted vs prohibited, the on-device-only
+retention window, the natural-person masking rule, and the APPI
+(個人情報保護法) boundary. That document carries an explicit
+**[CONFIRM]** gate: legal confirmation of 宅建業法 brokerage
+applicability is required before any production/live deployment. The
+guards are enforced fail-closed in `app/src/records.js` / `store.js`
+and tested in `app/test/pii-boundary.test.mjs` with synthetic fixtures
+only.
+
 ## Business bots
 
 Four on-demand Itonami bot profiles in `hermes/profiles/` share the business

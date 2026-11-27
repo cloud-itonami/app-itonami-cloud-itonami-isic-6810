@@ -25,3 +25,53 @@
 
 (deftest gate-holds-a-write-disabled-in-this-phase
   (is (= :hold (:disposition (phase/gate 0 {:op :listing/intake} :commit)))))
+
+;; --- ZB20-N03 negative controls: unknown phases must fail closed. -------
+;; Before the fix, `(get phases phase (get phases default-phase))` resolved
+;; every unknown phase to phase 3, so gate(999, :listing/intake, :commit)
+;; auto-committed. These tests pin the conservative behaviour.
+
+(deftest unknown-phase-never-auto-commits
+  (testing "ZB20-N03: unknown phases (999, -1, nil, keyword, string) HOLD and never auto-commit"
+    (doseq [bad [999 -1 nil :phase-99 "3" 4 3.5]]
+      (doseq [op [:listing/intake :jurisdiction/assess :kyc/screen :closing/submit]]
+        (let [{:keys [disposition reason]} (phase/gate bad {:op op} :commit)]
+          (is (= :hold disposition)
+              (str "gate(" (pr-str bad) ", " op ", :commit) must HOLD, got " disposition))
+          (is (= :phase-unknown reason)
+              (str "gate(" (pr-str bad) ", " op ") must diagnose :phase-unknown, got " reason))
+          (is (not= :commit disposition)
+              (str "gate(" (pr-str bad) ", " op ") must never auto-commit")))))))
+
+(deftest unknown-phase-is-at-least-as-strict-as-phase-1
+  (testing "ZB20-N03: gate(999) holds where phase 1 only escalates, so unknown is stricter than phase 1"
+    ;; Phase 1 enables :listing/intake but never auto-commits it: a clean
+    ;; governor verdict escalates for approval. An unknown phase must not
+    ;; be more permissive than that -- it holds outright.
+    (is (= :escalate (:disposition (phase/gate 1 {:op :listing/intake} :commit)))
+        "sanity: phase 1 escalates a clean intake (the baseline to beat)")
+    (is (= :hold (:disposition (phase/gate 999 {:op :listing/intake} :commit)))
+        "gate(999) must HOLD a clean intake, never auto-commit")
+    (is (= :hold (:disposition (phase/gate -1 {:op :listing/intake} :commit)))
+        "gate(-1) must HOLD a clean intake, never auto-commit")
+    (is (= :hold (:disposition (phase/gate nil {:op :listing/intake} :commit)))
+        "gate(nil) must HOLD a clean intake, never auto-commit")))
+
+(deftest unknown-phase-holds-even-escalate-and-read-inputs
+  (testing "ZB20-N03: unknown phase fails closed regardless of governor disposition or op kind"
+    (is (= :hold (:disposition (phase/gate 999 {:op :listing/intake} :escalate)))
+        "unknown phase must HOLD (not merely escalate) an escalate verdict")
+    (is (= :hold (:disposition (phase/gate 999 {:op :coverage/report} :commit)))
+        "unknown phase must HOLD even a read op rather than pass a :commit through")
+    (is (= :hold (:disposition (phase/gate nil {:op :coverage/report} :commit)))
+        "nil phase must HOLD even a read op"))
+  (testing "known phases keep their documented read behaviour (control)"
+    (is (= :commit (:disposition (phase/gate 0 {:op :coverage/report} :commit)))
+        "phase 0 is read-only, not read-blocked: reads still pass through")))
+
+(deftest known-phases-are-not-unknown
+  (testing "control: every key of phases is known, so the fail-closed branch is not over-broad"
+    (doseq [n (keys phase/phases)]
+      (is (phase/known-phase? n) (str "phase " n " must be known")))
+    (is (not (phase/known-phase? 999)) "999 must be unknown")
+    (is (not (phase/known-phase? nil)) "nil must be unknown")))

@@ -22,12 +22,52 @@ export const RIGHT_TYPES = Object.freeze({
 
 const FIELDS = ["jurisdiction", "kind", "address", "parcel", "areaM2", "lat", "lon", "rights", "docs", "references", "note"];
 
+// --- PII boundary (ZB20-SG01; see docs/pii-boundary.md) -------------------
+// Fail closed: owner/tenant contact details and government identifiers are
+// prohibited in records. Detection returns only a kind + path, never the
+// value itself, so diagnostics cannot leak the data they reject.
+export const PII_PROBLEM = "pii-prohibited";
+
+const PII_PATTERNS = [
+  ["email", /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/],
+  ["phone", /(?:\+[0-9]{1,3}[- ]?)?(?:0[789]0[- ]?\d{4}[- ]?\d{4}|\b0\d{10}\b)/],
+  ["identifier", /\b\d{4}[- ]\d{4}[- ]\d{4}\b|\b\d{12}\b/],
+];
+
+const PROHIBITED_KEYS = new Set([
+  "email", "e-mail", "phone", "telephone", "tel", "mobile", "fax",
+  "mynumber", "my-number", "ssn", "social-security", "passport",
+  "bank-account", "credit-card", "card-number", "date-of-birth", "dob",
+]);
+
+const piiKindIn = (s) => {
+  for (const [kind, re] of PII_PATTERNS) if (re.test(s)) return kind;
+  return null;
+};
+
+/** Deep-scan a value for prohibited keys / PII patterns. Returns ["path:kind"]. */
+export function piiFindings(value, path = "input", out = []) {
+  if (typeof value === "string") {
+    const kind = piiKindIn(value);
+    if (kind) out.push(`${path}:${kind}`);
+  } else if (Array.isArray(value)) {
+    value.forEach((v, i) => piiFindings(v, `${path}[${i}]`, out));
+  } else if (value && typeof value === "object") {
+    for (const [k, v] of Object.entries(value)) {
+      if (PROHIBITED_KEYS.has(k.toLowerCase()) && v !== null && v !== undefined && String(v).trim() !== "") out.push(`${path}.${k}:prohibited-key`);
+      piiFindings(v, `${path}.${k}`, out);
+    }
+  }
+  return out;
+}
+
 const text = (v, max = 500) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const num = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
 
 /** Normalize user input into record data. Returns { data } or { problems }. */
 export function recordData(input, catalog = {}) {
   const problems = [];
+  if (piiFindings(input ?? {}).length) problems.push(PII_PROBLEM);
   const jurisdiction = text(input.jurisdiction, 16).toUpperCase();
   if (!/^[A-Z]{3}(-[A-Z]{2,3})?$/.test(jurisdiction)) problems.push("jurisdiction");
   const kind = text(input.kind, 16);
@@ -62,7 +102,11 @@ function referenceData(ref) {
   if (ref?.source !== "wikidata" || !/^Q\d+$/.test(ref.item ?? "")) return null;
   return {
     source: "wikidata", item: ref.item, label: text(ref.label, 200),
-    owners: (Array.isArray(ref.owners) ? ref.owners : []).map((o) => ({ id: /^Q\d+$/.test(o?.id ?? "") ? o.id : "", label: text(o?.label, 200), person: o?.person === true })),
+    // A natural person is never named in a stored record (same rule as
+    // lookup.js parseResults): id is dropped and the label is masked.
+    owners: (Array.isArray(ref.owners) ? ref.owners : []).map((o) => (o?.person === true
+      ? { id: "", label: "個人", person: true }
+      : { id: /^Q\d+$/.test(o?.id ?? "") ? o.id : "", label: text(o?.label, 200), person: false })),
     retrievedAt: text(ref.retrievedAt, 40),
   };
 }
@@ -118,6 +162,7 @@ export function recordProblems(record) {
   }
   if (JSON.stringify(data) !== JSON.stringify(record.data)) problems.push("history-replay");
   if (!record.id.startsWith(`${record.data?.jurisdiction}-`)) problems.push("id");
+  if (record.data && piiFindings(record.data, "data").length) problems.push(PII_PROBLEM);
   return problems;
 }
 
